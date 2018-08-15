@@ -96,6 +96,7 @@
     <Compile Include="Impl\OptionSetParserV1TestFixture.cs" />
     <Compile Include="Impl\OptionValueConverterTestFixture.cs" />
     <Compile Include="Impl\OptionValueFactoryTestFixture.cs" />
+    <Compile Include="Impl\RangedOptionBehaviourTestFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StaticResources.cs" />
     <Compile Include="SutBase.cs" />
