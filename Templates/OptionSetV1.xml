@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <optionSet version="1" xmlns="http://tempuri.org" xmlns:xsi="http://tempuri.org/2018/Option/XMLSchema-instance" xsi:schemaLocation="http://tempuri.org OptionV1.xsd">
-  <option name="name1" displayName="displayName1" description="description1" defaultValue="defaultValue1" valueType="valueType1">
+  <option name="name1" displayName="displayName1" description="description1" defaultValue="defaultValue1" valueType="valueType1" suggestion="nameOfSuggestion">
     <!--Настройка является диапазонной-->
     <!--min - минимальное значение настройки. Атрибут может отсутствовать, тогда полагается, что минимальное значение равно default(T)-->
     <!--max - максимальное значение настройки. Атрибут может отсутствовать, тогда полагается, что максимальное значение равно default(T)-->
@@ -60,4 +60,45 @@
     <!--displayValueFieldName - имя поля из которого брать значения для отображения с списке. Атрибут может отсутствовать, тогда полагается, что displayValueFieldName = "displayValue"-->
     <sqlMultiList sorted="" separator="" query="" valueFieldName="" displayValueFieldName=""/>
   </option>
+
+  <!--Может быть 0..*-->
+  <group name="name1" displayName="displayName1" description="description1">
+    <!--Может быть 0..*-->
+    <option name="name3"/>
+    <!--Может быть 0..*-->
+    <group name="name2" displayName="displayName2" description="description2">
+      <option name="name4"/>
+      <option name="name5"/>
+    </group>
+  </group>
+
+  <!--Может быть 0..*-->
+  <constant name="name" value="value" valueType="valueType1"/>
+
+  <!--Может быть 0..*-->
+  <suggestion name="name6">
+    <!--Максимальная длина поля-->
+    <!--value - собственно сама минимальная длина поля. Целое положительное число типа UInt16. Не может быть null-->
+    <minLength value="{Constant name=nameofConstant}"/>
+    <!--value - собственно сама максимальная длина поля. Целое положительное число типа UInt16. Не может быть null-->
+    <maxLength value=""/>
+    <!--Предположение о том, что поле должно быть многострочным-->
+    <multiline/>
+    <!--Минимальное количество строк в многострочном поле-->
+    <!--value - собственно само количество строк. Целое положительное число типа Byte. Не может быть null-->
+    <minLines value=""/>
+    <!--Максимальное количество строк в многострочном поле-->
+    <!--value - собственно само количество строк. Целое положительное число типа Byte. Не может быть null-->
+    <maxLines value=""/>
+    <!--Регулярное выражение для проверки корректности введённого значения-->
+    <!--value - само регулярное выражение, которое будет применено к строковому представлению типа поля. String. Не может быть null-->
+    <!--validation - текст, которые нужно включить в валидацию для пользователя, если значение не проходит проверку. String. Атрибут может отсутствовать, тогда полагается, что validation = null-->
+    <regex value="" validation=""/>
+    <!--Следует ли уведомлять те настройки, у которых есть suggestion notifiable о том, что значение настройки изменилось-->
+    <notifyOnChange/>
+    <!--Следует ли уведомлять эту настройку о факте смены значения настройки с suggestion notifyOnChange. Настройке должна приехать: ссылка на изменившуюся настройку-->
+    <notifiable/>
+    <control name="nameOfControl" />
+  </suggestion>
+
 </optionSet>
