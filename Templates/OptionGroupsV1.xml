@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionGroups version="1" xmlns="http://tempuri.org" xmlns:xsi="http://tempuri.org/2018/Option/XMLSchema-instance" xsi:schemaLocation="http://tempuri.org OptionGroupsV1.xsd">
+  <group name="name1" displayName="displayName1" description="description1">
+    <option name="name3"/>
+    <group name="name2" displayName="displayName2" description="description2">
+      <option name="name4"/>
+      <option name="name5"/>
+    </group>
+  </group>
+</optionGroups>

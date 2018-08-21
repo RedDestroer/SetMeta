@@ -184,26 +184,10 @@ namespace SetMeta.Tests.Impl
             var optionValue = optionValueFactory.Create(OptionValueType.String);
             var list = new List<ListItem>
             {
-                new ListItem
-                {
-                    Value = "Value 1",
-                    DisplayValue = "Display Value 1"
-                },
-                new ListItem
-                {
-                    Value = "Value 2",
-                    DisplayValue = "Display Value 2"
-                },
-                new ListItem
-                {
-                    Value = "Value 3",
-                    DisplayValue = "Display Value 3"
-                },
-                new ListItem
-                {
-                    Value = "Value 4",
-                    DisplayValue = "Display Value 4"
-                },
+                new ListItem("Value 1", "Display Value 1"),
+                new ListItem("Value 2", "Display Value 2"),
+                new ListItem("Value 3", "Display Value 3"),
+                new ListItem("Value 4", "Display Value 4")
             };
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateFixedListBehaviour(optionValue, list));
@@ -226,26 +210,10 @@ namespace SetMeta.Tests.Impl
             var optionValue = optionValueFactory.Create(OptionValueType.String);
             var list = new List<ListItem>
             {
-                new ListItem
-                {
-                    Value = "Value 1",
-                    DisplayValue = "Display Value 1"
-                },
-                new ListItem
-                {
-                    Value = "Value 2",
-                    DisplayValue = "Display Value 2"
-                },
-                new ListItem
-                {
-                    Value = "Value 3",
-                    DisplayValue = "Display Value 3"
-                },
-                new ListItem
-                {
-                    Value = "Value 4",
-                    DisplayValue = "Display Value 4"
-                },
+                new ListItem("Value 1", "Display Value 1"),
+                new ListItem("Value 2", "Display Value 2"),
+                new ListItem("Value 3", "Display Value 3"),
+                new ListItem("Value 4", "Display Value 4")
             };
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateFlagListBehaviour(optionValue, list));
@@ -269,26 +237,10 @@ namespace SetMeta.Tests.Impl
             var optionValue = optionValueFactory.Create(OptionValueType.String);
             var list = new List<ListItem>
             {
-                new ListItem
-                {
-                    Value = "Value 1",
-                    DisplayValue = "Display Value 1"
-                },
-                new ListItem
-                {
-                    Value = "Value 2",
-                    DisplayValue = "Display Value 2"
-                },
-                new ListItem
-                {
-                    Value = "Value 3",
-                    DisplayValue = "Display Value 3"
-                },
-                new ListItem
-                {
-                    Value = "Value 4",
-                    DisplayValue = "Display Value 4"
-                },
+                new ListItem("Value 1", "Display Value 1"),
+                new ListItem("Value 2", "Display Value 2"),
+                new ListItem("Value 3", "Display Value 3"),
+                new ListItem("Value 4", "Display Value 4")
             };
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateMultiListBehaviour(optionValue, list, sorted, separator));
