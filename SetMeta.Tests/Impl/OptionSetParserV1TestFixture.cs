@@ -303,6 +303,21 @@ namespace SetMeta.Tests.Impl
             Assert.That(sqlMultiListOptionBehaviour.DisplayMember, Is.EqualTo(displayValue));
         }
 
+        [Test]
+        public void Parse_WhenItPresentDifferentOptionValueType_ShouldReturnCorrectRealTypes([Values]OptionValueType optionValueType)
+        {
+            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required || a.Name == "valueType", "valueType", optionValueType.ToString());
+
+            var actual = Sut.Parse(CreateReader(document));
+
+            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SimpleOptionBehaviour>());
+
+            var simpleOptionBehaviour = (SimpleOptionBehaviour)actual.Options[0].Behaviour;
+
+            Assert.That(simpleOptionBehaviour.OptionValueType, Is.EqualTo(optionValueType));
+
+        }
+
         private List<ListItem> FakeManyListItems(IOptionValue optionValue)
         {
             return FakeMany<ListItem>(o => o.FromFactory(() => new ListItem(Fake(optionValue.ValueType), Fake<string>())))
