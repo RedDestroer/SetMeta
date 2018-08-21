@@ -102,6 +102,7 @@
     <Compile Include="Impl\RangedOptionBehaviourTestFixture.cs" />
     <Compile Include="Impl\SqlFixedListOptionBehaviourTestFixture.cs" />
     <Compile Include="Impl\SqlFlagListOptionBehaviourTestFixture.cs" />
+    <Compile Include="Impl\SqlMultiListOptionBehaviourTestFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StaticResources.cs" />
     <Compile Include="SutBase.cs" />

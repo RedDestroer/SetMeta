@@ -349,6 +349,32 @@ namespace SetMeta.Tests.Impl
             Assert.That(sqlFlagListOptionBehaviour.DisplayMember, Is.EqualTo(displayValue));
         }
 
+        [Test]
+        public void Parse_WhenItPresentSqlMultiListBehaviour_ShouldReturnCorrectBehaviour()
+        {
+            var optionValueFactory = new OptionValueFactory();
+            var optionValue = optionValueFactory.Create(OptionValueType.String);
+            var query = Fake<string>();
+            var sorted = Fake<bool>();
+            var separator = Fake<string>();
+            var memberValue = Fake<string>();
+            var displayValue = Fake<string>();
+
+            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlMultiListBehaviour(optionValue, query, sorted, separator, memberValue, displayValue));
+
+            var actual = Sut.Parse(CreateReader(document));
+
+            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SqlMultiListOptionBehaviour>());
+
+            var sqlMultiListOptionBehaviour = (SqlMultiListOptionBehaviour)actual.Options[0].Behaviour;
+
+            Assert.That(sqlMultiListOptionBehaviour.Query, Is.EqualTo(query));
+            Assert.That(sqlMultiListOptionBehaviour.Sorted, Is.EqualTo(sorted));
+            Assert.That(sqlMultiListOptionBehaviour.Separator, Is.EqualTo(separator));
+            Assert.That(sqlMultiListOptionBehaviour.ValueMember, Is.EqualTo(memberValue));
+            Assert.That(sqlMultiListOptionBehaviour.DisplayMember, Is.EqualTo(displayValue));
+        }
+
         private OptionSet GetExpectedOptionSet(Option actual)
         {
             var optionSet = new OptionSet();
@@ -530,6 +556,11 @@ namespace SetMeta.Tests.Impl
         private Func<XElement> CreateSqlFlagListBehaviour(IOptionValue optionValue, string query, string memberValue, string displayValue)
         {
             return () => new XElement("sqlFlagList", new XAttribute("query", optionValue.GetStringValue(query)), new XAttribute("valueFieldName", optionValue.GetStringValue(memberValue)), new XAttribute("displayValueFieldName", optionValue.GetStringValue(displayValue)));
+        }
+
+        private Func<XElement> CreateSqlMultiListBehaviour(IOptionValue optionValue, string query, bool sorted, string separator, string memberValue, string displayValue)
+        {
+            return () => new XElement("sqlMultiList", new XAttribute("sorted", sorted), new XAttribute("separator", optionValue.GetStringValue(separator)), new XAttribute("query", optionValue.GetStringValue(query)), new XAttribute("valueFieldName", optionValue.GetStringValue(memberValue)), new XAttribute("displayValueFieldName", optionValue.GetStringValue(displayValue)));
         }
     }
 }

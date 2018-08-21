@@ -80,6 +80,8 @@ namespace SetMeta.Impl
             string query = null;
             string valueFieldName = null;
             string displayValueFieldName = null;
+            bool sorted = false;
+            string separator = null;
 
             switch (name)
             {
@@ -103,8 +105,8 @@ namespace SetMeta.Impl
                     optionBehaviour = CreateFlagListBehaviour(root, optionValue);
                     break;
                 case "multiList":
-                    var sorted = root.GetAttributeValue<bool>("sorted");
-                    var separator = root.GetAttributeValue<string>("separator");
+                    sorted = root.GetAttributeValue<bool>("sorted");
+                    separator = root.GetAttributeValue<string>("separator");
                     optionBehaviour = CreateMultiListBehaviour(root, optionValue, sorted, separator);
                     break;
                 case "sqlFixedList":
@@ -118,6 +120,14 @@ namespace SetMeta.Impl
                     valueFieldName = root.GetAttributeValue<string>("valueFieldName");
                     displayValueFieldName = root.GetAttributeValue<string>("displayValueFieldName");
                     optionBehaviour = new SqlFlagListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
+                    break;
+                case "sqlMultiList":
+                    query = root.GetAttributeValue<string>("query");
+                    sorted = root.GetAttributeValue<bool>("sorted");
+                    separator = root.GetAttributeValue<string>("separator");
+                    valueFieldName = root.GetAttributeValue<string>("valueFieldName");
+                    displayValueFieldName = root.GetAttributeValue<string>("displayValueFieldName");
+                    optionBehaviour = new SqlMultiListOptionBehaviour(optionValue, query, sorted, separator, valueFieldName, displayValueFieldName);
                     break;
             }
 
