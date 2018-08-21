@@ -6,7 +6,6 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using AutoFixture;
-using AutoFixture.Kernel;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
@@ -110,7 +109,7 @@ namespace SetMeta.Tests.Impl
                 return true;
             });
 
-            var attributeValue = GetNextValue(attributeValueType);
+            var attributeValue = Fake(attributeValueType);
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required || a.Name == attributeName, attributeName, attributeValue);
 
@@ -361,7 +360,7 @@ namespace SetMeta.Tests.Impl
                 AddAttribute(option,
                     optionAttribute,
                     name == null || name != optionAttribute.Name
-                        ? GetNextValue(optionAttribute)
+                        ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
                         : value);
             }
 
@@ -376,31 +375,9 @@ namespace SetMeta.Tests.Impl
         private XDocument GenerateDocument(Func<IEnumerable<XElement>> optionsFunc)
         {
             var declaration = new XDeclaration("1.0", "utf-8", "yes");
-            
-
             var body = new XElement(Keys.OptionSet, optionsFunc());
 
             return new XDocument(declaration, body);
-        }
-
-        private static object GetNextValue(IFixture fixture, XmlSchemaAttribute optionAttribute)
-        {
-            var type = optionAttribute.AttributeSchemaType.Datatype.ValueType;
-            var specimen = new SpecimenContext(fixture).Resolve(type);
-
-            return specimen;
-        }
-
-        private object GetNextValue(Type type)
-        {
-            var specimen = new SpecimenContext(AutoFixture).Resolve(type);
-
-            return specimen;
-        }
-
-        private object GetNextValue(XmlSchemaAttribute optionAttribute)
-        {
-            return GetNextValue(AutoFixture, optionAttribute);
         }
 
         private void AddAttribute(XElement option, XmlSchemaAttribute optionAttribute, object optionValue)
@@ -428,21 +405,15 @@ namespace SetMeta.Tests.Impl
         private Func<XElement> CreateRangedBehaviourMinMax(IOptionValue optionValue, string minValue, string maxValue, object isMin = null)
         {
             if (isMin == null)
-            {
                 return () => new XElement("rangedMinMax", new XAttribute("min", optionValue.GetStringValue(minValue)), new XAttribute("max", optionValue.GetStringValue(maxValue)));
-            }
-            else if ((bool)isMin)
-            {
+
+            if ((bool) isMin)
                 return () => new XElement("rangedMin", new XAttribute("min", optionValue.GetStringValue(minValue)));
-            }
-            else if (!(bool)isMin)
-            {
-                return () => new XElement("rangedMax", new XAttribute("max", optionValue.GetStringValue(maxValue)));               
-            }
-            else
-            {
-                return null;
-            }
+
+            if (!(bool) isMin)
+                return () => new XElement("rangedMax", new XAttribute("max", optionValue.GetStringValue(maxValue)));
+
+            return null;
         }
 
         private Func<XElement> CreateFixedListBehaviour(IOptionValue optionValue, IEnumerable<ListItem> list)
