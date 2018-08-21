@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AutoFixture;
 using AutoFixture.Dsl;
+using AutoFixture.Kernel;
 using Moq;
 using NUnit.Framework;
 
@@ -32,6 +33,16 @@ namespace SetMeta.Tests
         public T Fake<T>()
         {
             return AutoFixture.Create<T>();
+        }
+
+        public T Fake<T>(Type type)
+        {
+            return (T)new SpecimenContext(AutoFixture).Resolve(type);
+        }
+
+        public object Fake(Type type)
+        {
+            return new SpecimenContext(AutoFixture).Resolve(type);
         }
 
         public T Fake<T>(Func<ICustomizationComposer<T>, IPostprocessComposer<T>> builder)

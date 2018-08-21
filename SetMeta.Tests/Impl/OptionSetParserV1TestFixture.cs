@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
@@ -27,6 +26,7 @@ namespace SetMeta.Tests.Impl
         : SutBase<OptionSetParserV1, OptionSetParser>
     {
         private static readonly Lazy<IOptionInformator> OptionInformator;
+        private IOptionValueFactory _optionValueFactory = new OptionValueFactory();
 
         static OptionSetParserV1TestFixture()
         {
@@ -38,6 +38,13 @@ namespace SetMeta.Tests.Impl
                     return TraverseXmlSchema(xmlSchema);
                 }
             });
+        }
+
+        protected override void SetUpInner()
+        {
+            AutoFixture.Register<IOptionValueFactory>(() => new OptionValueFactory());
+            _optionValueFactory = AutoFixture.Create<IOptionValueFactory>();
+            base.SetUpInner();
         }
 
         [Test]
@@ -147,9 +154,7 @@ namespace SetMeta.Tests.Impl
         [TestCase(null, "Test min", true)]
         public void Parse_WhenItPresentRangedBehaviour_ShouldReturnCorrectBehaviour(string maxValue, string minValue, object isMin)
         {
-            var optionValueFactory = new OptionValueFactory();
-            var optionValue = optionValueFactory.Create(OptionValueType.String);
-
+            var optionValue = _optionValueFactory.Create(OptionValueType.String);
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateRangedBehaviourMinMax(optionValue, minValue, maxValue, isMin));
 
             var actual = Sut.Parse(CreateReader(document));
@@ -180,15 +185,8 @@ namespace SetMeta.Tests.Impl
         [Test]
         public void Parse_WhenItPresentFixedListBehaviour_ShouldReturnCorrectBehaviour()
         {
-            var optionValueFactory = new OptionValueFactory();
-            var optionValue = optionValueFactory.Create(OptionValueType.String);
-            var list = new List<ListItem>
-            {
-                new ListItem("Value 1", "Display Value 1"),
-                new ListItem("Value 2", "Display Value 2"),
-                new ListItem("Value 3", "Display Value 3"),
-                new ListItem("Value 4", "Display Value 4")
-            };
+            var optionValue = _optionValueFactory.Create(Fake<OptionValueType>());
+            var list = FakeManyListItems(optionValue);
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateFixedListBehaviour(optionValue, list));
 
@@ -199,22 +197,13 @@ namespace SetMeta.Tests.Impl
             var fixedListOptionBehaviour = (FixedListOptionBehaviour) actual.Options[0].Behaviour;
 
             Assert.That(fixedListOptionBehaviour.ListItems, Is.EqualTo(list));
-
         }
-
 
         [Test]
         public void Parse_WhenItPresentFlagListBehaviour_ShouldReturnCorrectBehaviour()
         {
-            var optionValueFactory = new OptionValueFactory();
-            var optionValue = optionValueFactory.Create(OptionValueType.String);
-            var list = new List<ListItem>
-            {
-                new ListItem("Value 1", "Display Value 1"),
-                new ListItem("Value 2", "Display Value 2"),
-                new ListItem("Value 3", "Display Value 3"),
-                new ListItem("Value 4", "Display Value 4")
-            };
+            var optionValue = _optionValueFactory.Create(Fake<OptionValueType>());
+            var list = FakeManyListItems(optionValue);
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateFlagListBehaviour(optionValue, list));
 
@@ -233,15 +222,8 @@ namespace SetMeta.Tests.Impl
         [TestCase(false, "/")]
         public void Parse_WhenItPresentMultiListBehaviour_ShouldReturnCorrectBehaviour(bool sorted, string separator)
         {
-            var optionValueFactory = new OptionValueFactory();
-            var optionValue = optionValueFactory.Create(OptionValueType.String);
-            var list = new List<ListItem>
-            {
-                new ListItem("Value 1", "Display Value 1"),
-                new ListItem("Value 2", "Display Value 2"),
-                new ListItem("Value 3", "Display Value 3"),
-                new ListItem("Value 4", "Display Value 4")
-            };
+            var optionValue = _optionValueFactory.Create(Fake<OptionValueType>());
+            var list = FakeManyListItems(optionValue);
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateMultiListBehaviour(optionValue, list, sorted, separator));
 
@@ -260,13 +242,11 @@ namespace SetMeta.Tests.Impl
         [Test]
         public void Parse_WhenItPresentSqlFixedListBehaviour_ShouldReturnCorrectBehaviour()
         {
-            var optionValueFactory = new OptionValueFactory();
-            var optionValue = optionValueFactory.Create(OptionValueType.String);
             var query = Fake<string>();
             var memberValue = Fake<string>();
             var displayValue = Fake<string>();
 
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlFixedListBehaviour(optionValue, query, memberValue, displayValue));
+            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlFixedListBehaviour(query, memberValue, displayValue));
 
             var actual = Sut.Parse(CreateReader(document));
 
@@ -282,13 +262,11 @@ namespace SetMeta.Tests.Impl
         [Test]
         public void Parse_WhenItPresentSqlFlagListBehaviour_ShouldReturnCorrectBehaviour()
         {
-            var optionValueFactory = new OptionValueFactory();
-            var optionValue = optionValueFactory.Create(OptionValueType.String);
             var query = Fake<string>();
             var memberValue = Fake<string>();
             var displayValue = Fake<string>();
 
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlFlagListBehaviour(optionValue, query, memberValue, displayValue));
+            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlFlagListBehaviour(query, memberValue, displayValue));
 
             var actual = Sut.Parse(CreateReader(document));
 
@@ -304,15 +282,13 @@ namespace SetMeta.Tests.Impl
         [Test]
         public void Parse_WhenItPresentSqlMultiListBehaviour_ShouldReturnCorrectBehaviour()
         {
-            var optionValueFactory = new OptionValueFactory();
-            var optionValue = optionValueFactory.Create(OptionValueType.String);
             var query = Fake<string>();
             var sorted = Fake<bool>();
             var separator = Fake<string>();
             var memberValue = Fake<string>();
             var displayValue = Fake<string>();
 
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlMultiListBehaviour(optionValue, query, sorted, separator, memberValue, displayValue));
+            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlMultiListBehaviour( query, sorted, separator, memberValue, displayValue));
 
             var actual = Sut.Parse(CreateReader(document));
 
@@ -327,13 +303,18 @@ namespace SetMeta.Tests.Impl
             Assert.That(sqlMultiListOptionBehaviour.DisplayMember, Is.EqualTo(displayValue));
         }
 
+        private List<ListItem> FakeManyListItems(IOptionValue optionValue)
+        {
+            return FakeMany<ListItem>(o => o.FromFactory(() => new ListItem(Fake(optionValue.ValueType), Fake<string>())))
+                .ToList();
+        }
+
         private OptionSet GetExpectedOptionSet(Option actual)
         {
             var optionSet = new OptionSet();
             optionSet.Version = "1";
 
-            var optionValueFactory = new OptionValueFactory();
-            var optionValue = optionValueFactory.Create(OptionValueType.String);
+            var optionValue = _optionValueFactory.Create(actual.ValueType);
 
             optionSet.Options.Add(new Option
                 {
@@ -470,7 +451,7 @@ namespace SetMeta.Tests.Impl
 
             foreach (var listItem in list)
             {
-                fixedList.Add(new XElement("listItem", new XAttribute("value", listItem.Value.ToString()), new XAttribute("displayValue", listItem.DisplayValue)));
+                fixedList.Add(new XElement("listItem", new XAttribute("value", optionValue.GetStringValue(listItem.Value)), new XAttribute("displayValue", listItem.DisplayValue)));
             }           
 
             return () => fixedList;
@@ -482,7 +463,7 @@ namespace SetMeta.Tests.Impl
 
             foreach (var listItem in list)
             {
-                flagList.Add(new XElement("listItem", new XAttribute("value", listItem.Value.ToString()), new XAttribute("displayValue", listItem.DisplayValue)));
+                flagList.Add(new XElement("listItem", new XAttribute("value", optionValue.GetStringValue(listItem.Value)), new XAttribute("displayValue", listItem.DisplayValue)));
             }
 
             return () => flagList;
@@ -490,29 +471,40 @@ namespace SetMeta.Tests.Impl
 
         private Func<XElement> CreateMultiListBehaviour(IOptionValue optionValue, IEnumerable<ListItem> list, bool sorted = false, string separator = ";")
         {
-            var multiList = new XElement("multiList", new XAttribute("sorted", sorted), new XAttribute("separator", optionValue.GetStringValue(separator)));
+            var multiList = new XElement("multiList", new XAttribute("sorted", sorted), new XAttribute("separator", separator));
 
             foreach (var listItem in list)
             {
-                multiList.Add(new XElement("listItem", new XAttribute("value", listItem.Value.ToString()), new XAttribute("displayValue", listItem.DisplayValue)));
+                multiList.Add(new XElement("listItem", new XAttribute("value", optionValue.GetStringValue(listItem.Value)), new XAttribute("displayValue", listItem.DisplayValue)));
             }
 
             return () => multiList;
         }
 
-        private Func<XElement> CreateSqlFixedListBehaviour(IOptionValue optionValue, string query, string memberValue, string displayValue)
+        private Func<XElement> CreateSqlFixedListBehaviour(string query, string memberValue, string displayValue)
         {
-            return () => new XElement("sqlFixedList", new XAttribute("query", optionValue.GetStringValue(query)), new XAttribute("valueFieldName", optionValue.GetStringValue(memberValue)), new XAttribute("displayValueFieldName", optionValue.GetStringValue(displayValue)));
+            return () => new XElement("sqlFixedList", 
+                new XAttribute("query", query),
+                new XAttribute("valueFieldName", memberValue),
+                new XAttribute("displayValueFieldName", displayValue));
         }
 
-        private Func<XElement> CreateSqlFlagListBehaviour(IOptionValue optionValue, string query, string memberValue, string displayValue)
+        private Func<XElement> CreateSqlFlagListBehaviour(string query, string memberValue, string displayValue)
         {
-            return () => new XElement("sqlFlagList", new XAttribute("query", optionValue.GetStringValue(query)), new XAttribute("valueFieldName", optionValue.GetStringValue(memberValue)), new XAttribute("displayValueFieldName", optionValue.GetStringValue(displayValue)));
+            return () => new XElement("sqlFlagList", 
+                new XAttribute("query", query),
+                new XAttribute("valueFieldName", memberValue),
+                new XAttribute("displayValueFieldName", displayValue));
         }
 
-        private Func<XElement> CreateSqlMultiListBehaviour(IOptionValue optionValue, string query, bool sorted, string separator, string memberValue, string displayValue)
+        private Func<XElement> CreateSqlMultiListBehaviour(string query, bool sorted, string separator, string memberValue, string displayValue)
         {
-            return () => new XElement("sqlMultiList", new XAttribute("sorted", sorted), new XAttribute("separator", optionValue.GetStringValue(separator)), new XAttribute("query", optionValue.GetStringValue(query)), new XAttribute("valueFieldName", optionValue.GetStringValue(memberValue)), new XAttribute("displayValueFieldName", optionValue.GetStringValue(displayValue)));
+            return () => new XElement("sqlMultiList", 
+                new XAttribute("sorted", sorted), 
+                new XAttribute("separator", separator), 
+                new XAttribute("query", query), 
+                new XAttribute("valueFieldName", memberValue), 
+                new XAttribute("displayValueFieldName", displayValue));
         }
     }
 }

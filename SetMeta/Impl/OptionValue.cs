@@ -13,9 +13,12 @@ namespace SetMeta.Impl
         {
             OptionValueType = optionValueType;
             _optionValueConverter = optionValueConverter;
+            ValueType = typeof(T);
         }
 
         public OptionValueType OptionValueType { get; }
+
+        public Type ValueType { get; }
 
         public T GetValue(string value)
         {

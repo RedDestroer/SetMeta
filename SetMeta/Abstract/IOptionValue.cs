@@ -5,6 +5,7 @@ namespace SetMeta.Abstract
     public interface IOptionValue
     {
         OptionValueType OptionValueType { get; }
+        Type ValueType { get; }
         object GetValue(string value);
         string GetStringValue(object value);
         string GetStringValue(object value, IFormatProvider formatProvider);
