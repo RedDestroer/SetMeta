@@ -34,9 +34,7 @@ namespace SetMeta.Impl
                 case OptionValueType.Decimal:
                     return new OptionValue<decimal>(optionValueType, new OptionValueConverter<decimal>());
                 case OptionValueType.DateTime:
-                    return new OptionValue<DateTime>(optionValueType, new OptionValueConverter<DateTime>());
                 case OptionValueType.Date:
-                    return new OptionValue<DateTime>(optionValueType, new OptionValueConverter<DateTime>());
                 case OptionValueType.Time:
                     return new OptionValue<DateTime>(optionValueType, new OptionValueConverter<DateTime>());
                 case OptionValueType.TimeSpan:
@@ -62,15 +60,13 @@ namespace SetMeta.Impl
                 case OptionValueType.NullableDecimal:
                     return new OptionValue<decimal?>(optionValueType, new OptionValueConverter<decimal?>());
                 case OptionValueType.NullableDateTime:
-                    return new OptionValue<DateTime?>(optionValueType, new OptionValueConverter<DateTime?>());
                 case OptionValueType.NullableDate:
-                    return new OptionValue<DateTime?>(optionValueType, new OptionValueConverter<DateTime?>());
                 case OptionValueType.NullableTime:
                     return new OptionValue<DateTime?>(optionValueType, new OptionValueConverter<DateTime?>());
                 case OptionValueType.NullableTimeSpan:
                     return new OptionValue<TimeSpan?>(optionValueType, new OptionValueConverter<TimeSpan?>());
                 case OptionValueType.ByteArray:
-                    return new OptionValue<Byte[]>(optionValueType, new OptionValueConverter<Byte[]>());
+                    return new OptionValue<byte[]>(optionValueType, new OptionValueConverter<byte[]>());
                 default:
                     throw new InvalidEnumArgumentException(nameof(optionValueType), (int)optionValueType, typeof(OptionValueType));
             }

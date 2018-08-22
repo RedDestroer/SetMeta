@@ -309,9 +309,9 @@ namespace SetMeta.Tests.Impl
 
             var actual = Sut.Parse(CreateReader(document));
 
-            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SimpleOptionBehaviour>());
+            Assert.That(actual.Options[actual.Options.Keys.First()].Behaviour, Is.TypeOf<SimpleOptionBehaviour>());
 
-            var simpleOptionBehaviour = (SimpleOptionBehaviour)actual.Options[0].Behaviour;
+            var simpleOptionBehaviour = (SimpleOptionBehaviour)actual.Options[actual.Options.Keys.First()].Behaviour;
 
             Assert.That(simpleOptionBehaviour.OptionValueType, Is.EqualTo(optionValueType));
 
