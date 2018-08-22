@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SetMeta", "SetMeta\SetMeta.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{FCE6F775-4CC8-41C2-9F49-F18E48E4D3AB}"
 	ProjectSection(SolutionItems) = preProject
-		Templates\OptionGroupsV1.xml = Templates\OptionGroupsV1.xml
-		Templates\OptionGroupsV1.xsd = Templates\OptionGroupsV1.xsd
 		Templates\OptionSetV1.xml = Templates\OptionSetV1.xml
 		Templates\OptionSetV1.xsd = Templates\OptionSetV1.xsd
 		Templates\OptionTemplate.xml = Templates\OptionTemplate.xml

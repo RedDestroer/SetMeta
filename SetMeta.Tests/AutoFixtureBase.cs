@@ -37,7 +37,7 @@ namespace SetMeta.Tests
 
         public T Fake<T>(Type type)
         {
-            return (T)new SpecimenContext(AutoFixture).Resolve(type);
+            return (T)Fake(type);
         }
 
         public object Fake(Type type)
