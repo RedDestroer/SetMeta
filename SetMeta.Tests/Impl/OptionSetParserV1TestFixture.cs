@@ -90,7 +90,7 @@ namespace SetMeta.Tests.Impl
             Assert.That(actual.Options, Is.Not.Null);
             Assert.That(actual.Version, Is.EqualTo("1"));
 
-            var expected = GetExpectedOptionSet(actual.Options[actual.Options.Keys.First()]);
+            var expected = GetExpectedOptionSet(actual.Options[0]);
 
             actual.Should().BeEquivalentTo(expected);
         }
@@ -120,7 +120,7 @@ namespace SetMeta.Tests.Impl
 
             var propertyInfo = typeof(Option).GetProperty(propertyName);
             Assert.That(propertyInfo, Is.Not.Null);
-            Assert.That(propertyInfo.GetValue(actual.Options[actual.Options.Keys.First()]), Is.EqualTo(attributeValue));
+            Assert.That(propertyInfo.GetValue(actual.Options[0]), Is.EqualTo(attributeValue));
         }
 
         [TestCase(OptionAttributeKeys.DefaultValue, typeof(string), nameof(Option.DefaultValue), OptionAttributeDefaults.DefaultValue)]
@@ -145,7 +145,7 @@ namespace SetMeta.Tests.Impl
 
             var propertyInfo = typeof(Option).GetProperty(propertyName);
             Assert.That(propertyInfo, Is.Not.Null);
-            Assert.That(propertyInfo.GetValue(actual.Options[actual.Options.Keys.First()]), Is.EqualTo(attributeValue));
+            Assert.That(propertyInfo.GetValue(actual.Options[0]), Is.EqualTo(attributeValue));
         }
 
         [TestCase("Test max", "Test min", null)]
@@ -158,9 +158,9 @@ namespace SetMeta.Tests.Impl
 
             var actual = Sut.Parse(CreateReader(document));
 
-            Assert.That(actual.Options[actual.Options.Keys.First()].Behaviour, Is.TypeOf<RangedOptionBehaviour>());
+            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<RangedOptionBehaviour>());
 
-            var rangedOptionBehaviour = (RangedOptionBehaviour) actual.Options[actual.Options.Keys.First()].Behaviour;
+            var rangedOptionBehaviour = (RangedOptionBehaviour) actual.Options[0].Behaviour;
 
             Assert.That(rangedOptionBehaviour.MaxValue, Is.EqualTo(maxValue));
             Assert.That(rangedOptionBehaviour.MinValue, Is.EqualTo(minValue));
@@ -191,9 +191,9 @@ namespace SetMeta.Tests.Impl
 
             var actual = Sut.Parse(CreateReader(document));
 
-            Assert.That(actual.Options[actual.Options.Keys.First()].Behaviour, Is.TypeOf<FixedListOptionBehaviour>());
+            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<FixedListOptionBehaviour>());
 
-            var fixedListOptionBehaviour = (FixedListOptionBehaviour) actual.Options[actual.Options.Keys.First()].Behaviour;
+            var fixedListOptionBehaviour = (FixedListOptionBehaviour) actual.Options[0].Behaviour;
 
             Assert.That(fixedListOptionBehaviour.ListItems, Is.EqualTo(list));
         }
@@ -208,9 +208,9 @@ namespace SetMeta.Tests.Impl
 
             var actual = Sut.Parse(CreateReader(document));
 
-            Assert.That(actual.Options[actual.Options.Keys.First()].Behaviour, Is.TypeOf<FlagListOptionBehaviour>());
+            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<FlagListOptionBehaviour>());
 
-            var flagListOptionBehaviour = (FlagListOptionBehaviour)actual.Options[actual.Options.Keys.First()].Behaviour;
+            var flagListOptionBehaviour = (FlagListOptionBehaviour)actual.Options[0].Behaviour;
 
             Assert.That(flagListOptionBehaviour.ListItems, Is.EqualTo(list));
 
@@ -228,9 +228,9 @@ namespace SetMeta.Tests.Impl
 
             var actual = Sut.Parse(CreateReader(document));
 
-            Assert.That(actual.Options[actual.Options.Keys.First()].Behaviour, Is.TypeOf<MultiListOptionBehaviour>());
+            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<MultiListOptionBehaviour>());
 
-            var multiListOptionBehaviour = (MultiListOptionBehaviour)actual.Options[actual.Options.Keys.First()].Behaviour;
+            var multiListOptionBehaviour = (MultiListOptionBehaviour)actual.Options[0].Behaviour;
 
             Assert.That(multiListOptionBehaviour.ListItems, Is.EqualTo(list));
             Assert.That(multiListOptionBehaviour.Sorted, Is.EqualTo(sorted));
@@ -249,9 +249,9 @@ namespace SetMeta.Tests.Impl
 
             var actual = Sut.Parse(CreateReader(document));
 
-            Assert.That(actual.Options[actual.Options.Keys.First()].Behaviour, Is.TypeOf<SqlFixedListOptionBehaviour>());
+            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SqlFixedListOptionBehaviour>());
 
-            var sqlFixedListOptionBehaviour = (SqlFixedListOptionBehaviour)actual.Options[actual.Options.Keys.First()].Behaviour;
+            var sqlFixedListOptionBehaviour = (SqlFixedListOptionBehaviour)actual.Options[0].Behaviour;
 
             Assert.That(sqlFixedListOptionBehaviour.Query, Is.EqualTo(query));
             Assert.That(sqlFixedListOptionBehaviour.ValueMember, Is.EqualTo(memberValue));
@@ -269,9 +269,9 @@ namespace SetMeta.Tests.Impl
 
             var actual = Sut.Parse(CreateReader(document));
 
-            Assert.That(actual.Options[actual.Options.Keys.First()].Behaviour, Is.TypeOf<SqlFlagListOptionBehaviour>());
+            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SqlFlagListOptionBehaviour>());
 
-            var sqlFlagListOptionBehaviour = (SqlFlagListOptionBehaviour)actual.Options[actual.Options.Keys.First()].Behaviour;
+            var sqlFlagListOptionBehaviour = (SqlFlagListOptionBehaviour)actual.Options[0].Behaviour;
 
             Assert.That(sqlFlagListOptionBehaviour.Query, Is.EqualTo(query));
             Assert.That(sqlFlagListOptionBehaviour.ValueMember, Is.EqualTo(memberValue));
@@ -291,9 +291,9 @@ namespace SetMeta.Tests.Impl
 
             var actual = Sut.Parse(CreateReader(document));
 
-            Assert.That(actual.Options[actual.Options.Keys.First()].Behaviour, Is.TypeOf<SqlMultiListOptionBehaviour>());
+            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SqlMultiListOptionBehaviour>());
 
-            var sqlMultiListOptionBehaviour = (SqlMultiListOptionBehaviour)actual.Options[actual.Options.Keys.First()].Behaviour;
+            var sqlMultiListOptionBehaviour = (SqlMultiListOptionBehaviour)actual.Options[0].Behaviour;
 
             Assert.That(sqlMultiListOptionBehaviour.Query, Is.EqualTo(query));
             Assert.That(sqlMultiListOptionBehaviour.Sorted, Is.EqualTo(sorted));
@@ -309,9 +309,9 @@ namespace SetMeta.Tests.Impl
 
             var actual = Sut.Parse(CreateReader(document));
 
-            Assert.That(actual.Options[actual.Options.Keys.First()].Behaviour, Is.TypeOf<SimpleOptionBehaviour>());
+            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SimpleOptionBehaviour>());
 
-            var simpleOptionBehaviour = (SimpleOptionBehaviour)actual.Options[actual.Options.Keys.First()].Behaviour;
+            var simpleOptionBehaviour = (SimpleOptionBehaviour)actual.Options[0].Behaviour;
 
             Assert.That(simpleOptionBehaviour.OptionValueType, Is.EqualTo(optionValueType));
 
@@ -330,7 +330,7 @@ namespace SetMeta.Tests.Impl
 
             var optionValue = _optionValueFactory.Create(actual.ValueType);
 
-            optionSet.Options[actual.Name] = new Option
+            optionSet.Options.Add(new Option
                 {
                     Name = actual.Name,
                     DisplayName = OptionAttributeDefaults.DisplayName,
@@ -338,7 +338,7 @@ namespace SetMeta.Tests.Impl
                     DefaultValue = OptionAttributeDefaults.DefaultValue,
                     ValueType = OptionAttributeDefaults.ValueType,
                     Behaviour = new SimpleOptionBehaviour(optionValue)
-                };
+                });
 
             return optionSet;
         }
