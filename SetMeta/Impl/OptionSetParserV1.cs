@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Linq;
 using SetMeta.Abstract;
-using SetMeta.Behaviours;
 using SetMeta.Entities;
+using SetMeta.Entities.Behaviours;
 using SetMeta.Util;
 
 namespace SetMeta.Impl
@@ -13,6 +13,7 @@ namespace SetMeta.Impl
         : OptionSetParser
     {
         private readonly IOptionValueFactory _optionValueFactory;
+        private IOptionSetValidator _optionSetValidator;
 
         public OptionSetParserV1(IOptionValueFactory optionValueFactory)
         {
@@ -21,9 +22,12 @@ namespace SetMeta.Impl
 
         public override string Version => "1";
 
-        public override OptionSet Parse(XmlTextReader reader)
+        public override OptionSet Parse(XmlTextReader reader, IOptionSetValidator optionSetValidator)
         {
             Validate.NotNull(reader, nameof(reader));
+            Validate.NotNull(optionSetValidator, nameof(optionSetValidator));
+
+            _optionSetValidator = optionSetValidator;
 
             var optionSet = new OptionSet();
             var document = XDocument.Load(reader);

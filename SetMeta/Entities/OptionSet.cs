@@ -6,12 +6,12 @@ namespace SetMeta.Entities
     {
         public OptionSet()
         {
-            Options = new List<Option>();
-            Groups = new List<Group>();
+            Options = new Dictionary<string, Option>();
+            Groups = new Dictionary<string, Group>();
         }
 
         public string Version { get; set; }
-        public IList<Option> Options { get; }
-        public IList<Group> Groups { get; }
+        public IDictionary<string, Option> Options { get; }
+        public IDictionary<string, Group> Groups { get; }
     }
 }

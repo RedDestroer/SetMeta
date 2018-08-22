@@ -1,9 +1,8 @@
-﻿using AutoFixture.Dsl;
-using NUnit.Framework;
-using SetMeta.Behaviours;
+﻿using NUnit.Framework;
+using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
 
-namespace SetMeta.Tests.Impl
+namespace SetMeta.Tests.Entities.Behaviours
 {
     [TestFixture]
     public class RangedOptionBehaviourTestFixture

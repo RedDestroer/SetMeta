@@ -91,18 +91,18 @@
   <ItemGroup>
     <Compile Include="AssertEx.cs" />
     <Compile Include="AutoFixtureBase.cs" />
-    <Compile Include="Impl\FixedListOptionBehaviourTestFixture.cs" />
-    <Compile Include="Impl\FlagListOptionBehaviourTestFixture.cs" />
-    <Compile Include="Impl\MultiListOptionBehaviourTestFixture.cs" />
-    <Compile Include="Impl\OptionBehaviourTestFixture.cs" />
+    <Compile Include="Entities\Behaviours\FixedListOptionBehaviourTestFixture.cs" />
+    <Compile Include="Entities\Behaviours\FlagListOptionBehaviourTestFixture.cs" />
+    <Compile Include="Entities\Behaviours\MultiListOptionBehaviourTestFixture.cs" />
+    <Compile Include="Entities\Behaviours\OptionBehaviourTestFixture.cs" />
     <Compile Include="Impl\OptionSetParserTestFixture.cs" />
     <Compile Include="Impl\OptionSetParserV1TestFixture.cs" />
     <Compile Include="Impl\OptionValueConverterTestFixture.cs" />
     <Compile Include="Impl\OptionValueFactoryTestFixture.cs" />
-    <Compile Include="Impl\RangedOptionBehaviourTestFixture.cs" />
-    <Compile Include="Impl\SqlFixedListOptionBehaviourTestFixture.cs" />
-    <Compile Include="Impl\SqlFlagListOptionBehaviourTestFixture.cs" />
-    <Compile Include="Impl\SqlMultiListOptionBehaviourTestFixture.cs" />
+    <Compile Include="Entities\Behaviours\RangedOptionBehaviourTestFixture.cs" />
+    <Compile Include="Entities\Behaviours\SqlFixedListOptionBehaviourTestFixture.cs" />
+    <Compile Include="Entities\Behaviours\SqlFlagListOptionBehaviourTestFixture.cs" />
+    <Compile Include="Entities\Behaviours\SqlMultiListOptionBehaviourTestFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StaticResources.cs" />
     <Compile Include="SutBase.cs" />

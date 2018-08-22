@@ -98,28 +98,28 @@ namespace SetMeta.Abstract
             }
         }
 
-        public OptionSet Parse(Stream stream)
+        public OptionSet Parse(Stream stream, IOptionSetValidator optionSetValidator)
         {
             Validate.NotNull(stream, nameof(stream));
 
             using (var reader = new XmlTextReader(stream))
             {
-                return Parse(reader);
+                return Parse(reader, optionSetValidator);
             }
         }
 
-        public OptionSet Parse(string data)
+        public OptionSet Parse(string data, IOptionSetValidator optionSetValidator)
         {
             Validate.NotNull(data, nameof(data));
 
             using (var textReader = new StringReader(data))
             using (var reader = new XmlTextReader(textReader))
             {
-                return Parse(reader);
+                return Parse(reader, optionSetValidator);
             }
         }
 
-        public abstract OptionSet Parse(XmlTextReader reader);
+        public abstract OptionSet Parse(XmlTextReader reader, IOptionSetValidator optionSetValidator);
 
         private static void FillParsers()
         {
