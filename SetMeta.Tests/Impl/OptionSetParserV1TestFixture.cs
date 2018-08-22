@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
 using SetMeta.Abstract;
 using SetMeta.Behaviours;
+using SetMeta.Dao;
 using SetMeta.Entities;
 using SetMeta.Impl;
 using SetMeta.Tests.Util;
@@ -44,17 +45,6 @@ namespace SetMeta.Tests.Impl
             AutoFixture.Register<IOptionValueFactory>(() => new OptionValueFactory());
             _optionValueFactory = AutoFixture.Create<IOptionValueFactory>();
             base.SetUpInner();
-        }
-
-        [Test]
-        public void OptionSetParserV1_WhenWePassNull_ThrowException()
-        {
-            void Delegate()
-            {
-                new OptionSetParserV1(null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionValueFactory");
         }
 
         [Test]

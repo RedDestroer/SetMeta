@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using SetMeta.Behaviours;
-using SetMeta.Entities;
 using SetMeta.Impl;
 
 namespace SetMeta.Tests.Impl

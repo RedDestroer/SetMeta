@@ -5,8 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
-using SetMeta.Entities;
-using SetMeta.Impl;
+using SetMeta.Dao;
 using SetMeta.Util;
 
 namespace SetMeta.Abstract
@@ -130,11 +129,10 @@ namespace SetMeta.Abstract
                     var assembly = Assembly.GetExecutingAssembly();
                     var marker = typeof(OptionSetParser);
                     var types = assembly.GetTypes().Where(t => !t.IsAbstract && marker.IsAssignableFrom(t));
-                    var optionValueFactory = new OptionValueFactory();
 
                     foreach (var type in types)
                     {
-                        var instance = (OptionSetParser)Activator.CreateInstance(type, optionValueFactory);
+                        var instance = (OptionSetParser)Activator.CreateInstance(type);
                         OptionSetParsers[instance.Version] = instance;
                     }
                 }

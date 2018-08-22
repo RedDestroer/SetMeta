@@ -1,5 +1,4 @@
-﻿using AutoFixture.Dsl;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using SetMeta.Behaviours;
 using SetMeta.Impl;
 

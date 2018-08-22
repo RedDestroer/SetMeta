@@ -34,4 +34,10 @@
         NullableTimeSpan = 28,
         ByteArray = 29
     }
+
+    public enum OptionBehaviorType
+        : byte
+    {
+        Simple = 0
+    }
 }
