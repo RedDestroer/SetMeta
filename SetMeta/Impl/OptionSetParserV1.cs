@@ -36,7 +36,7 @@ namespace SetMeta.Impl
             foreach (var element in body.Elements(Keys.Option))
             {
                 var option = ParseOption(element);
-                optionSet.Options[option.Name] = option;
+                optionSet.Options.Add(option);
             }
 
             return optionSet;
