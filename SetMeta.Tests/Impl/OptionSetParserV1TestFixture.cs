@@ -317,6 +317,32 @@ namespace SetMeta.Tests.Impl
 
         }
 
+        [TestCase("name", typeof(string), nameof(Group.Name))]
+        [TestCase("description", typeof(string), nameof(Group.Description))]
+        [TestCase("displayName", typeof(string), nameof(Group.DisplayName))]
+        public void Parse_WhenItPresentInGroup_ShouldReadAttribute(string attributeName, Type attributeValueType, string propertyName)
+        {
+            DataConversion.AddParser(delegate (string input, out object value)
+            {
+                value = input;
+                return true;
+            });
+
+            var attributeValue = Fake(attributeValueType);
+            var groupAttributeValue = Fake(attributeValueType);
+
+            var document = GenerateDocumentWithOneOptionAndOneGroup(a => a.Use == XmlSchemaUse.Required || a.Name == attributeName, attributeName, attributeValue, groupAttributeValue);
+
+            var actual = Sut.Parse(CreateReader(document));
+
+            Assert.That(actual.Groups, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+
+            var propertyInfo = typeof(Group).GetProperty(propertyName);
+            Assert.That(propertyInfo, Is.Not.Null);
+            Assert.That(propertyInfo.GetValue(actual.Groups[0]), Is.EqualTo(groupAttributeValue));
+        }
+
         private List<ListItem> FakeManyListItems(IOptionValue optionValue)
         {
             return FakeMany<ListItem>(o => o.FromFactory(() => new ListItem(Fake(optionValue.ValueType), Fake<string>())))
@@ -356,6 +382,16 @@ namespace SetMeta.Tests.Impl
             return new XmlTextReader(stream);
         }
 
+        private XDocument GenerateDocumentWithOneOptionAndOneGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object optionValue = null, object groupValue = null)
+        {
+            return GenerateDocument(GenerateGroupFunc(expectedAttribute, name, optionValue, groupValue));
+        }
+
+        private Func<IEnumerable<XElement>> GenerateGroupFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object optionValue = null, object groupValue = null)
+        {
+            return () => new[] { GenerateOption(expectedAttribute, name, optionValue), GenerateGroup(expectedAttribute, name, groupValue) };
+        }
+
         private XDocument GenerateDocumentWithOneOption(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
         {
             return GenerateDocument(GenerateOptionFunc(expectedAttribute, name, value, behaviourFunc));
@@ -364,6 +400,22 @@ namespace SetMeta.Tests.Impl
         private Func<IEnumerable<XElement>> GenerateOptionFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
         {
             return () => new[] { GenerateOption(expectedAttribute, name, value, behaviourFunc) };
+        }
+
+        private XElement GenerateGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
+        {
+            var group = new XElement("group");
+
+            foreach (var optionAttribute in OptionInformator.Value.OptionAttributes.Where(o => expectedAttribute(o)))
+            {
+                AddAttribute(group,
+                    optionAttribute,
+                    name == null || name != optionAttribute.Name
+                        ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
+                        : value);
+            }
+
+            return group;
         }
 
         private XElement GenerateOption(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)

@@ -39,7 +39,46 @@ namespace SetMeta.Impl
                 optionSet.Options.Add(option);
             }
 
+            foreach (var element in body.Elements("group"))
+            {
+                var group = ParseGroup(element);
+                optionSet.Groups.Add(group);
+            }
+
             return optionSet;
+        }
+
+        private Group ParseGroup(XElement root)
+        {
+            var group = new Group();
+
+            group.Name = root.GetAttributeValue<string>("name");
+            group.DisplayName = root.TryGetAttributeValue("displayName", "Default DisplayName");
+            group.Description = root.TryGetAttributeValue("description", "Default Description");
+            FillOptions(root, group.Options);
+            FillGroups(root, group.Groups);
+
+            return group;
+        }
+
+        private void FillOptions(XElement root, IList<Option> options)
+        {
+            var elements = root.Elements();
+
+            foreach (var element in elements)
+            {
+                options.Add(ParseOption(element));
+            }
+        }
+
+        private void FillGroups(XElement root, IList<Group> groups)
+        {
+            var elements = root.Elements();
+
+            foreach (var element in elements)
+            {
+                groups.Add(ParseGroup(element));
+            }
         }
 
         private Option ParseOption(XElement root)
