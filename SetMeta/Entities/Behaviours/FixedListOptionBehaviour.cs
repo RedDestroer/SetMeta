@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using SetMeta.Abstract;
-using SetMeta.Entities;
 
-namespace SetMeta.Behaviours
+namespace SetMeta.Entities.Behaviours
 {
     public class FixedListOptionBehaviour
         : OptionBehaviour

@@ -1,6 +1,6 @@
 ﻿using SetMeta.Abstract;
 
-namespace SetMeta.Behaviours
+namespace SetMeta.Entities.Behaviours
 {
     public class RangedOptionBehaviour
         : OptionBehaviour

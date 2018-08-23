@@ -2,7 +2,7 @@
 using SetMeta.Abstract;
 using SetMeta.Impl;
 
-namespace SetMeta.Tests.Impl
+namespace SetMeta.Tests.Entities.Behaviours
 {
     [TestFixture]
     public class OptionBehaviourTestFixture

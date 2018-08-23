@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using SetMeta.Abstract;
-using SetMeta.Behaviours;
 using SetMeta.Entities;
+using SetMeta.Entities.Behaviours;
 using SetMeta.Util;
 
 namespace SetMeta.Impl
@@ -14,6 +15,8 @@ namespace SetMeta.Impl
     {
         private readonly IOptionValueFactory _optionValueFactory;
 
+        private IOptionSetValidator _optionSetValidator;
+
         public OptionSetParserV1(IOptionValueFactory optionValueFactory)
         {
             _optionValueFactory = optionValueFactory ?? throw new ArgumentNullException(nameof(optionValueFactory));
@@ -21,9 +24,12 @@ namespace SetMeta.Impl
 
         public override string Version => "1";
 
-        public override OptionSet Parse(XmlTextReader reader)
+        public override OptionSet Parse(XmlTextReader reader, IOptionSetValidator optionSetValidator)
         {
             Validate.NotNull(reader, nameof(reader));
+            Validate.NotNull(optionSetValidator, nameof(optionSetValidator));
+
+            _optionSetValidator = optionSetValidator;
 
             var optionSet = new OptionSet();
             var document = XDocument.Load(reader);
@@ -33,20 +39,58 @@ namespace SetMeta.Impl
 
             optionSet.Version = Version;
 
-            foreach (var element in body.Elements(Keys.Option))
-            {
-                var option = ParseOption(element);
-                optionSet.Options.Add(option);
-            }
+            ParseOptions(body, optionSet.Options);
 
             return optionSet;
         }
 
+        private void ParseOptions(XElement root, IDictionary<string, Option> options)
+        {
+            root.Elements(Keys.Option)
+                .ForEach(element =>
+                {
+                    var option = ParseOption(element);
+                    if (KeyIsValid(option.Id))
+                    {
+                        if (KeyIsUnique(option.Id, options))
+                        {
+                            options[option.Id] = option;
+                        }
+                        else
+                        {
+                            _optionSetValidator.AddError($"Key '{option.Id}' isn`t unique among options.", element);
+                        }
+                    }
+                    else
+                    {
+                        _optionSetValidator.AddError($"Key '{option.Id}' ('{option.Name}') isn`t valid.", element);
+                    }
+                });
+        }
+
+        private bool KeyIsUnique(string id, IDictionary<string, Option> options)
+        {
+            return !options.ContainsKey(id);
+        }
+
+        private bool KeyIsValid(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return false;
+
+            if (id.ToCharArray()
+                .Any(o => !AllowedChars.ContainsKey(o)))
+                return false;
+
+            return true;
+        }
+
         private Option ParseOption(XElement root)
         {
-            var option = new Option();           
+            var option = new Option();
 
-            option.Name = root.GetAttributeValue<string>(OptionAttributeKeys.Name);
+            option.Name = TryGetMandatoryAttributeValue<string>(root, OptionAttributeKeys.Name);
+            option.Id = CreateId(option.Name);
             option.DisplayName = root.TryGetAttributeValue(OptionAttributeKeys.DisplayName, OptionAttributeDefaults.DisplayName);
             option.Description = root.TryGetAttributeValue(OptionAttributeKeys.Description, OptionAttributeDefaults.Description);
             option.DefaultValue = root.TryGetAttributeValue(OptionAttributeKeys.DefaultValue, OptionAttributeDefaults.DefaultValue);
@@ -55,6 +99,14 @@ namespace SetMeta.Impl
             option.Behaviour = CreateBehaviour(root, optionValue);
 
             return option;
+        }
+
+        private T TryGetMandatoryAttributeValue<T>(XElement root, string name)
+        {
+            if (!root.TryGetAttributeValue(name, out T value))
+                _optionSetValidator.AddError($"Mandatory attribute {name} not found.", root);
+
+            return value;
         }
 
         private OptionBehaviour CreateBehaviour(XElement root, IOptionValue optionValue)

@@ -1,7 +1,7 @@
 ﻿using System;
 using SetMeta.Abstract;
 
-namespace SetMeta.Behaviours
+namespace SetMeta.Entities.Behaviours
 {
     public class SqlMultiListOptionBehaviour
         : OptionBehaviour

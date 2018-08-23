@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using NUnit.Framework;
-using SetMeta.Behaviours;
 using SetMeta.Entities;
+using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
 
-namespace SetMeta.Tests.Impl
+namespace SetMeta.Tests.Entities.Behaviours
 {
     [TestFixture]
     public class FlagListOptionBehaviourTestFixture
