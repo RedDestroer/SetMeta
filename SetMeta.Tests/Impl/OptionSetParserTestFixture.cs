@@ -151,5 +151,13 @@ namespace SetMeta.Tests.Impl
 
             mock.Verify(o => o.Parse(It.IsAny<XmlTextReader>(), It.IsNotNull<IOptionSetValidator>()), Times.Once());
         }
+
+        [Test]
+        public void CreateId_WhenWePassStringNull_ReturnEmptyString()
+        {
+            var actual = OptionSetParser.CreateId(null);
+
+            Assert.That(actual, Is.EqualTo(string.Empty));
+        }
     }
 }
