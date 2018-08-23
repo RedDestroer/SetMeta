@@ -10,8 +10,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
 using SetMeta.Abstract;
-using SetMeta.Behaviours;
 using SetMeta.Entities;
+using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
 using SetMeta.Tests.Util;
 using SetMeta.Util;
@@ -62,10 +62,21 @@ namespace SetMeta.Tests.Impl
         {
             void Delegate()
             {
-                Sut.Parse((XmlTextReader)null);
+                Sut.Parse((XmlTextReader)null, Fake<IOptionSetValidator>());
             }
 
             AssertEx.ThrowsArgumentNullException(Delegate, "reader");
+        }
+
+        [Test]
+        public void Parse_WhenNullIOptionSetValidatorIsPassed_Throws()
+        {
+            void Delegate()
+            {
+                Sut.Parse(Fake<XmlTextReader>(), null);
+            }
+
+            AssertEx.ThrowsArgumentNullException(Delegate, "optionSetValidator");
         }
 
         [Test]
@@ -75,7 +86,7 @@ namespace SetMeta.Tests.Impl
             {
                 using (var reader = CreateReader("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>"))
                 {
-                    Sut.Parse(reader);
+                    Sut.Parse(reader, Fake<IOptionSetValidator>());
                 }
             });
         }
@@ -85,12 +96,12 @@ namespace SetMeta.Tests.Impl
         {
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required);
             
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
             
             Assert.That(actual.Options, Is.Not.Null);
             Assert.That(actual.Version, Is.EqualTo("1"));
 
-            var expected = GetExpectedOptionSet(actual.Options[0]);
+            var expected = GetExpectedOptionSet(actual.Options.First().Value);
 
             actual.Should().BeEquivalentTo(expected);
         }
@@ -113,14 +124,14 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required || a.Name == attributeName, attributeName, attributeValue);
 
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
             Assert.That(actual.Options, Is.Not.Null);
             Assert.That(actual.Version, Is.EqualTo("1"));          
 
             var propertyInfo = typeof(Option).GetProperty(propertyName);
             Assert.That(propertyInfo, Is.Not.Null);
-            Assert.That(propertyInfo.GetValue(actual.Options[0]), Is.EqualTo(attributeValue));
+            Assert.That(propertyInfo.GetValue(actual.Options.First().Value), Is.EqualTo(attributeValue));
         }
 
         [TestCase(OptionAttributeKeys.DefaultValue, typeof(string), nameof(Option.DefaultValue), OptionAttributeDefaults.DefaultValue)]
@@ -138,14 +149,14 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required);
 
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
             Assert.That(actual.Options, Is.Not.Null);
             Assert.That(actual.Version, Is.EqualTo("1"));
 
             var propertyInfo = typeof(Option).GetProperty(propertyName);
             Assert.That(propertyInfo, Is.Not.Null);
-            Assert.That(propertyInfo.GetValue(actual.Options[0]), Is.EqualTo(attributeValue));
+            Assert.That(propertyInfo.GetValue(actual.Options.First().Value), Is.EqualTo(attributeValue));
         }
 
         [TestCase("Test max", "Test min", null)]
@@ -156,11 +167,11 @@ namespace SetMeta.Tests.Impl
             var optionValue = _optionValueFactory.Create(OptionValueType.String);
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateRangedBehaviourMinMax(optionValue, minValue, maxValue, isMin));
 
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<RangedOptionBehaviour>());
+            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<RangedOptionBehaviour>());
 
-            var rangedOptionBehaviour = (RangedOptionBehaviour) actual.Options[0].Behaviour;
+            var rangedOptionBehaviour = (RangedOptionBehaviour) actual.Options.First().Value.Behaviour;
 
             Assert.That(rangedOptionBehaviour.MaxValue, Is.EqualTo(maxValue));
             Assert.That(rangedOptionBehaviour.MinValue, Is.EqualTo(minValue));
@@ -189,11 +200,11 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateFixedListBehaviour(optionValue, list));
 
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<FixedListOptionBehaviour>());
+            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<FixedListOptionBehaviour>());
 
-            var fixedListOptionBehaviour = (FixedListOptionBehaviour) actual.Options[0].Behaviour;
+            var fixedListOptionBehaviour = (FixedListOptionBehaviour) actual.Options.First().Value.Behaviour;
 
             Assert.That(fixedListOptionBehaviour.ListItems, Is.EqualTo(list));
         }
@@ -206,11 +217,11 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateFlagListBehaviour(optionValue, list));
 
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<FlagListOptionBehaviour>());
+            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<FlagListOptionBehaviour>());
 
-            var flagListOptionBehaviour = (FlagListOptionBehaviour)actual.Options[0].Behaviour;
+            var flagListOptionBehaviour = (FlagListOptionBehaviour)actual.Options.First().Value.Behaviour;
 
             Assert.That(flagListOptionBehaviour.ListItems, Is.EqualTo(list));
 
@@ -226,11 +237,11 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateMultiListBehaviour(optionValue, list, sorted, separator));
 
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<MultiListOptionBehaviour>());
+            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<MultiListOptionBehaviour>());
 
-            var multiListOptionBehaviour = (MultiListOptionBehaviour)actual.Options[0].Behaviour;
+            var multiListOptionBehaviour = (MultiListOptionBehaviour)actual.Options.First().Value.Behaviour;
 
             Assert.That(multiListOptionBehaviour.ListItems, Is.EqualTo(list));
             Assert.That(multiListOptionBehaviour.Sorted, Is.EqualTo(sorted));
@@ -247,11 +258,11 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlFixedListBehaviour(query, memberValue, displayValue));
 
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SqlFixedListOptionBehaviour>());
+            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<SqlFixedListOptionBehaviour>());
 
-            var sqlFixedListOptionBehaviour = (SqlFixedListOptionBehaviour)actual.Options[0].Behaviour;
+            var sqlFixedListOptionBehaviour = (SqlFixedListOptionBehaviour)actual.Options.First().Value.Behaviour;
 
             Assert.That(sqlFixedListOptionBehaviour.Query, Is.EqualTo(query));
             Assert.That(sqlFixedListOptionBehaviour.ValueMember, Is.EqualTo(memberValue));
@@ -267,11 +278,11 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlFlagListBehaviour(query, memberValue, displayValue));
 
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SqlFlagListOptionBehaviour>());
+            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<SqlFlagListOptionBehaviour>());
 
-            var sqlFlagListOptionBehaviour = (SqlFlagListOptionBehaviour)actual.Options[0].Behaviour;
+            var sqlFlagListOptionBehaviour = (SqlFlagListOptionBehaviour)actual.Options.First().Value.Behaviour;
 
             Assert.That(sqlFlagListOptionBehaviour.Query, Is.EqualTo(query));
             Assert.That(sqlFlagListOptionBehaviour.ValueMember, Is.EqualTo(memberValue));
@@ -289,11 +300,11 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlMultiListBehaviour( query, sorted, separator, memberValue, displayValue));
 
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SqlMultiListOptionBehaviour>());
+            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<SqlMultiListOptionBehaviour>());
 
-            var sqlMultiListOptionBehaviour = (SqlMultiListOptionBehaviour)actual.Options[0].Behaviour;
+            var sqlMultiListOptionBehaviour = (SqlMultiListOptionBehaviour)actual.Options.First().Value.Behaviour;
 
             Assert.That(sqlMultiListOptionBehaviour.Query, Is.EqualTo(query));
             Assert.That(sqlMultiListOptionBehaviour.Sorted, Is.EqualTo(sorted));
@@ -307,11 +318,11 @@ namespace SetMeta.Tests.Impl
         {
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required || a.Name == "valueType", "valueType", optionValueType.ToString());
 
-            var actual = Sut.Parse(CreateReader(document));
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Options[0].Behaviour, Is.TypeOf<SimpleOptionBehaviour>());
+            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<SimpleOptionBehaviour>());
 
-            var simpleOptionBehaviour = (SimpleOptionBehaviour)actual.Options[0].Behaviour;
+            var simpleOptionBehaviour = (SimpleOptionBehaviour)actual.Options.First().Value.Behaviour;
 
             Assert.That(simpleOptionBehaviour.OptionValueType, Is.EqualTo(optionValueType));
 
@@ -329,16 +340,18 @@ namespace SetMeta.Tests.Impl
             optionSet.Version = "1";
 
             var optionValue = _optionValueFactory.Create(actual.ValueType);
+            var id = OptionSetParser.CreateId(actual.Name);
 
-            optionSet.Options.Add(new Option
+            optionSet.Options[id] = new Option
                 {
+                    Id = id,
                     Name = actual.Name,
                     DisplayName = OptionAttributeDefaults.DisplayName,
                     Description = OptionAttributeDefaults.Description,
                     DefaultValue = OptionAttributeDefaults.DefaultValue,
                     ValueType = OptionAttributeDefaults.ValueType,
                     Behaviour = new SimpleOptionBehaviour(optionValue)
-                });
+                };
 
             return optionSet;
         }

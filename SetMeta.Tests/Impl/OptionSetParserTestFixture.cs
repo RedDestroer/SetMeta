@@ -71,17 +71,31 @@ namespace SetMeta.Tests.Impl
 
             void Delegate()
             {
-                sut.Parse((Stream)null);
+                sut.Parse((Stream)null, Fake<IOptionSetValidator>());
             }
 
             AssertEx.ThrowsArgumentNullException(Delegate, "stream");
         }
 
         [Test]
+        public void Parse_WhenNullIOptionSetValidatorIsPassed_Throws()
+        {
+            var sut = Dep<Mock<OptionSetParser>>()
+                .Object;
+
+            void Delegate()
+            {
+                sut.Parse(Fake<Stream>(), null);
+            }
+
+            AssertEx.ThrowsArgumentNullException(Delegate, "optionSetValidator");
+        }
+
+        [Test]
         public void Parse_WhenStreamIsPassed_ParseWithXmlTextReaderIsCalled()
         {
             var mock = Dep<Mock<OptionSetParser>>();
-            mock.Setup(o => o.Parse(It.IsAny<XmlTextReader>()))
+            mock.Setup(o => o.Parse(It.IsAny<XmlTextReader>(), It.IsNotNull<IOptionSetValidator>()))
                 .Returns(() => null)
                 .Verifiable();
 
@@ -89,10 +103,10 @@ namespace SetMeta.Tests.Impl
 
             using (var stream = new MemoryStream())
             {
-                sut.Parse(stream);
+                sut.Parse(stream, Fake<IOptionSetValidator>());
             }
             
-            mock.Verify(o => o.Parse(It.IsAny<XmlTextReader>()), Times.Once());
+            mock.Verify(o => o.Parse(It.IsAny<XmlTextReader>(), It.IsNotNull<IOptionSetValidator>()), Times.Once());
         }
 
         [Test]
@@ -103,25 +117,39 @@ namespace SetMeta.Tests.Impl
 
             void Delegate()
             {
-                sut.Parse((string)null);
+                sut.Parse((string)null, Fake<IOptionSetValidator>());
             }
 
             AssertEx.ThrowsArgumentNullException(Delegate, "data");
         }
 
         [Test]
+        public void Parse_WhenNullIOptionSetValidatorIsPassedWithString_Throws()
+        {
+            var sut = Dep<Mock<OptionSetParser>>()
+                .Object;
+
+            void Delegate()
+            {
+                sut.Parse(Fake<string>(), null);
+            }
+
+            AssertEx.ThrowsArgumentNullException(Delegate, "optionSetValidator");
+        }
+
+        [Test]
         public void Parse_WhenStringIsPassed_ParseWithXmlTextReaderIsCalled()
         {
             var mock = Dep<Mock<OptionSetParser>>();
-            mock.Setup(o => o.Parse(It.IsAny<XmlTextReader>()))
+            mock.Setup(o => o.Parse(It.IsAny<XmlTextReader>(), It.IsNotNull<IOptionSetValidator>()))
                 .Returns(() => null)
                 .Verifiable();
 
             var sut = mock.Object;
 
-            sut.Parse(AutoFixture.Create<string>());
+            sut.Parse(Fake<string>(), Fake<IOptionSetValidator>());
 
-            mock.Verify(o => o.Parse(It.IsAny<XmlTextReader>()), Times.Once());
+            mock.Verify(o => o.Parse(It.IsAny<XmlTextReader>(), It.IsNotNull<IOptionSetValidator>()), Times.Once());
         }
     }
 }

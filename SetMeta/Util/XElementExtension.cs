@@ -184,6 +184,11 @@ namespace SetMeta.Util
             return DataConversion.Convert<T>(attribute.Value);
         }
 
+        public static bool TryGetAttributeValue<T>(this XElement root, string name, out T attributeValue)
+        {
+            return root.TryGetAttributeValue(name, default(T), out attributeValue);
+        }
+
         public static bool TryGetAttributeValue<T>(this XElement root, string name, T defaultValue, out T attributeValue)
         {
             if (name == null) throw new ArgumentNullException(

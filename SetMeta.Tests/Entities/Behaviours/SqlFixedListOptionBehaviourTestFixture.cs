@@ -1,40 +1,40 @@
 ﻿using NUnit.Framework;
-using SetMeta.Behaviours;
+using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
 
-namespace SetMeta.Tests.Impl
+namespace SetMeta.Tests.Entities.Behaviours
 {
     [TestFixture]
-    public class SqlFlagListOptionBehaviourTestFixture
+    public class SqlFixedListOptionBehaviourTestFixture
         : AutoFixtureBase
     {
         [Test]
-        public void SqlFlagListOptionBehaviour_WhenWePassNullOptionValue_ThrowException()
+        public void SqlFixedListOptionBehaviour_WhenWePassNullOptionValue_ThrowException()
         {
             void Delegate()
             {
-                new SqlFlagListOptionBehaviour(null, "");
+                new SqlFixedListOptionBehaviour(null, "");
             }
 
             AssertEx.ThrowsArgumentNullException(Delegate, "optionValue");
         }
 
         [Test]
-        public void SqlFlagListOptionBehaviour_WhenWePassNullQuery_ThrowException()
+        public void SqlFixedListOptionBehaviour_WhenWePassNullQuery_ThrowException()
         {
             var optionValueFactory = new OptionValueFactory();
             var optionValue = optionValueFactory.Create(OptionValueType.String);
 
             void Delegate()
             {
-                new SqlFlagListOptionBehaviour(optionValue, null);
+                new SqlFixedListOptionBehaviour(optionValue, null);
             }
 
             AssertEx.ThrowsArgumentNullException(Delegate, "query");
         }
 
         [Test]
-        public void SqlFlagListOptionBehaviour_WhenWePassValidItems_TheyAssignedCorrectly()
+        public void SqlFixedListOptionBehaviour_WhenWePassValidItems_TheyAssignedCorrectly()
         {
             var optionValueFactory = new OptionValueFactory();
             var optionValue = optionValueFactory.Create(OptionValueType.String);
@@ -42,7 +42,7 @@ namespace SetMeta.Tests.Impl
             var value = "Test Value";
             var displayValue = "Test Display Value";
 
-            var actual = new SqlFlagListOptionBehaviour(optionValue, query, value, displayValue);
+            var actual = new SqlFixedListOptionBehaviour(optionValue, query, value, displayValue);
 
             Assert.That(actual.Query, Is.EqualTo(query));
             Assert.That(actual.ValueMember, Is.EqualTo(value));

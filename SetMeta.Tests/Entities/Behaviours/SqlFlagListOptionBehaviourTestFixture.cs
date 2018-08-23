@@ -1,53 +1,50 @@
 ﻿using NUnit.Framework;
-using SetMeta.Behaviours;
+using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
 
-namespace SetMeta.Tests.Impl
+namespace SetMeta.Tests.Entities.Behaviours
 {
     [TestFixture]
-    public class SqlMultiListOptionBehaviourTestFixture
+    public class SqlFlagListOptionBehaviourTestFixture
         : AutoFixtureBase
     {
         [Test]
-        public void SqlMultiListOptionBehaviour_WhenWePassNullOptionValue_ThrowException()
+        public void SqlFlagListOptionBehaviour_WhenWePassNullOptionValue_ThrowException()
         {
             void Delegate()
             {
-                new SqlMultiListOptionBehaviour(null, "");
+                new SqlFlagListOptionBehaviour(null, "");
             }
 
             AssertEx.ThrowsArgumentNullException(Delegate, "optionValue");
         }
 
         [Test]
-        public void SqlMultiListOptionBehaviour_WhenWePassNullQuery_ThrowException()
+        public void SqlFlagListOptionBehaviour_WhenWePassNullQuery_ThrowException()
         {
             var optionValueFactory = new OptionValueFactory();
             var optionValue = optionValueFactory.Create(OptionValueType.String);
 
             void Delegate()
             {
-                new SqlMultiListOptionBehaviour(optionValue, null);
+                new SqlFlagListOptionBehaviour(optionValue, null);
             }
 
             AssertEx.ThrowsArgumentNullException(Delegate, "query");
         }
 
         [Test]
-        public void SqlMultiListOptionBehaviour_WhenWePassValidItems_TheyAssignedCorrectly()
+        public void SqlFlagListOptionBehaviour_WhenWePassValidItems_TheyAssignedCorrectly()
         {
             var optionValueFactory = new OptionValueFactory();
             var optionValue = optionValueFactory.Create(OptionValueType.String);
             var query = "Test Query";
-            var separator = "/";
             var value = "Test Value";
             var displayValue = "Test Display Value";
 
-            var actual = new SqlMultiListOptionBehaviour(optionValue, query, true, separator, value, displayValue);
+            var actual = new SqlFlagListOptionBehaviour(optionValue, query, value, displayValue);
 
             Assert.That(actual.Query, Is.EqualTo(query));
-            Assert.That(actual.Sorted, Is.True);
-            Assert.That(actual.Separator, Is.EqualTo(separator));
             Assert.That(actual.ValueMember, Is.EqualTo(value));
             Assert.That(actual.DisplayMember, Is.EqualTo(displayValue));
         }
