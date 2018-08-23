@@ -13,9 +13,23 @@ namespace SetMeta.Abstract
 {
     public abstract class OptionSetParser
     {
+        private const string AllowedKeyChars = "0123456789abcdefghijklmnopqrstuvwxyz.-_";
         private static readonly IDictionary<string, OptionSetParser> OptionSetParsers = new ConcurrentDictionary<string, OptionSetParser>();
 
+        static OptionSetParser()
+        {
+            AllowedChars = AllowedKeyChars.ToCharArray()
+                .ToDictionary(o => o, o => (int)o);
+        }
+
+        protected static IDictionary<char, int> AllowedChars { get; }
+
         public abstract string Version { get; }
+
+        public static string CreateId(string data)
+        {
+            return (data ?? string.Empty).ToLowerInvariant();
+        }
 
         public static OptionSetParser Create(string version)
         {
@@ -101,6 +115,7 @@ namespace SetMeta.Abstract
         public OptionSet Parse(Stream stream, IOptionSetValidator optionSetValidator)
         {
             Validate.NotNull(stream, nameof(stream));
+            Validate.NotNull(optionSetValidator, nameof(optionSetValidator));
 
             using (var reader = new XmlTextReader(stream))
             {
@@ -111,6 +126,7 @@ namespace SetMeta.Abstract
         public OptionSet Parse(string data, IOptionSetValidator optionSetValidator)
         {
             Validate.NotNull(data, nameof(data));
+            Validate.NotNull(optionSetValidator, nameof(optionSetValidator));
 
             using (var textReader = new StringReader(data))
             using (var reader = new XmlTextReader(textReader))
