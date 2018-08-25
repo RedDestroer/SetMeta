@@ -5,7 +5,7 @@ using XsdIterator;
 namespace SetMeta.Tests.Util
 {
     public class OptionSetV1XmlSchemaProcessor
-        : XmlSchemaDefaultProcessor, IOptionInformator
+        : XmlSchemaDefaultProcessor, IOptionInformant
     {
         private bool _readOptionAttributes;
 
@@ -45,7 +45,7 @@ namespace SetMeta.Tests.Util
         }
     }
 
-    public interface IOptionInformator
+    public interface IOptionInformant
     {
         List<XmlSchemaAttribute> OptionAttributes { get; }
     }

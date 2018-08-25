@@ -25,12 +25,12 @@ namespace SetMeta.Tests.Impl
     internal class OptionSetParserV1TestFixture
         : SutBase<OptionSetParserV1, OptionSetParser>
     {
-        private static readonly Lazy<IOptionInformator> OptionInformator;
+        private static readonly Lazy<IOptionInformant> OptionInformant;
         private IOptionValueFactory _optionValueFactory = new OptionValueFactory();
 
         static OptionSetParserV1TestFixture()
         {
-            OptionInformator = new Lazy<IOptionInformator>(() =>
+            OptionInformant = new Lazy<IOptionInformant>(() =>
             {
                 using (var reader = new XmlTextReader(StaticResources.GetStream("OptionSetV1.xsd")))
                 {
@@ -436,7 +436,7 @@ namespace SetMeta.Tests.Impl
         {
             var option = new XElement(Keys.Option);
 
-            foreach (var optionAttribute in OptionInformator.Value.OptionAttributes.Where(o => expectedAttribute(o)))
+            foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
             {
                 AddAttribute(option,
                     optionAttribute,
@@ -466,7 +466,7 @@ namespace SetMeta.Tests.Impl
             option.Add(new XAttribute(optionAttribute.Name, Convert.ToString(optionValue)));
         }
 
-        private static IOptionInformator TraverseXmlSchema(XmlSchema xmlSchema)
+        private static IOptionInformant TraverseXmlSchema(XmlSchema xmlSchema)
         {
             var schemaSet = new XmlSchemaSet();
             schemaSet.Add(xmlSchema);
