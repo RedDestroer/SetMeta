@@ -8,6 +8,7 @@ using System.Xml.Schema;
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NUnit.Framework;
 using SetMeta.Abstract;
 using SetMeta.Entities;
@@ -328,6 +329,48 @@ namespace SetMeta.Tests.Impl
 
         }
 
+        [Test]
+        public void Parse_WhenWePassInvalidOptionName_OptionSetValidatorLogError()
+        {
+            var attributeValue = Fake<string>();
+            var mock = Fake<Mock<IOptionSetValidator>>();
+            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' isn`t unique among options.";
+
+            var document = GenerateDocumentWithTwoOptionsAndSameName(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+
+            var actual = Sut.Parse(CreateReader(document), mock.Object);
+
+            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+        }
+
+        [Test]
+        public void Parse_WhenWePassInvalidName_OptionSetValidatorLogError()
+        {
+            var attributeValue = "#123";
+            var mock = Fake<Mock<IOptionSetValidator>>();
+            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' ('{attributeValue}') isn`t valid.";
+
+            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+
+            var actual = Sut.Parse(CreateReader(document), mock.Object);
+
+            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+        }
+
+        [Test]
+        public void Parse_WhenWePassName_IdIsGeneratedFromName()
+        {
+            var attributeValue = Fake<string>();
+            var expectedId = OptionSetParser.CreateId(attributeValue);
+
+            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Options.First().Value.Id, Is.EqualTo(expectedId));
+
+        }
+
         private List<ListItem> FakeManyListItems(IOptionValue optionValue)
         {
             return FakeMany<ListItem>(o => o.FromFactory(() => new ListItem(Fake(optionValue.ValueType), Fake<string>())))
@@ -367,6 +410,16 @@ namespace SetMeta.Tests.Impl
             document.Save(stream);
             stream.Position = 0;
             return new XmlTextReader(stream);
+        }
+
+        private XDocument GenerateDocumentWithTwoOptionsAndSameName(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
+        {
+            return GenerateDocument(GenerateOptionFuncWithTwoOptionsAndSameNames(expectedAttribute, name, value, behaviourFunc));
+        }
+
+        private Func<IEnumerable<XElement>> GenerateOptionFuncWithTwoOptionsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
+        {
+            return () => new[] { GenerateOption(expectedAttribute, name, value, behaviourFunc), GenerateOption(expectedAttribute, name, value, behaviourFunc) };
         }
 
         private XDocument GenerateDocumentWithOneOption(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
