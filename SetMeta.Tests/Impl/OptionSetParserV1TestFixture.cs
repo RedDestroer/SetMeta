@@ -364,7 +364,7 @@ namespace SetMeta.Tests.Impl
             var mock = Fake<Mock<IOptionSetValidator>>();
             var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' isn`t unique among groups.";
 
-            var document = GenerateDocumentWithTwoGroupsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+            var document = GenerateDocumentWithTwoGroupsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == GroupAttributeKeys.Name, GroupAttributeKeys.Name, attributeValue);
 
             var actual = Sut.Parse(CreateReader(document), mock.Object);
 
@@ -378,7 +378,7 @@ namespace SetMeta.Tests.Impl
             var mock = Fake<Mock<IOptionSetValidator>>();
             var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' ('{attributeValue}') isn`t valid.";
 
-            var document = GenerateDocumentWithOneGroup(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+            var document = GenerateDocumentWithOneGroup(a => a.Use == XmlSchemaUse.Required || a.Name == GroupAttributeKeys.Name, GroupAttributeKeys.Name, attributeValue);
 
             var actual = Sut.Parse(CreateReader(document), mock.Object);
 
@@ -450,6 +450,59 @@ namespace SetMeta.Tests.Impl
 
         }
 
+        [Test]
+        public void Parse_WhenWePassNotUniqueConstantName_OptionSetValidatorLogError()
+        {
+            var attributeValue = Fake<string>();
+            var mock = Fake<Mock<IOptionSetValidator>>();
+            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' isn`t unique among constants.";
+
+            var document = GenerateDocumentWithTwoConstantsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == ConstantAttributeKeys.Name, ConstantAttributeKeys.Name, attributeValue);
+
+            var actual = Sut.Parse(CreateReader(document), mock.Object);
+
+            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+        }
+
+        [Test]
+        public void Parse_WhenWePassInvalidConstantName_OptionSetValidatorLogError()
+        {
+            var attributeValue = "#123";
+            var mock = Fake<Mock<IOptionSetValidator>>();
+            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' ('{attributeValue}') isn`t valid.";
+
+            var document = GenerateDocumentWithOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+
+            var actual = Sut.Parse(CreateReader(document), mock.Object);
+
+            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+        }
+
+        [TestCase("name", typeof(string), nameof(Constant.Name))]
+        //[TestCase("value", typeof(string), nameof(Constant.Value))]
+        [TestCase("valueType", typeof(string), nameof(Constant.ValueType))]
+        public void Parse_WhenItPresentInConstant_ShouldReadAttribute(string attributeName, Type attributeValueType, string propertyName)
+        {
+            DataConversion.AddParser(delegate (string input, out object value)
+            {
+                value = input;
+                return true;
+            });
+
+            var attributeValue = Fake(attributeValueType);
+
+            var document = GenerateDocumentWithOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == attributeName, attributeName, attributeValue);
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Constants, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+
+            var propertyInfo = typeof(Constant).GetProperty(propertyName);
+            Assert.That(propertyInfo, Is.Not.Null);
+            Assert.That(propertyInfo.GetValue(actual.Constants.First().Value), Is.EqualTo(attributeValue));
+        }
+
         private List<ListItem> FakeManyListItems(IOptionValue optionValue)
         {
             return FakeMany<ListItem>(o => o.FromFactory(() => new ListItem(Fake(optionValue.ValueType), Fake<string>())))
@@ -489,6 +542,26 @@ namespace SetMeta.Tests.Impl
             document.Save(stream);
             stream.Position = 0;
             return new XmlTextReader(stream);
+        }
+
+        private XDocument GenerateDocumentWithOneConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
+        {
+            return GenerateDocument(GenerateConstantFunc(expectedAttribute, name, value));
+        }
+
+        private Func<IEnumerable<XElement>> GenerateConstantFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
+        {
+            return () => new[] { GenerateConstant(expectedAttribute, name, value) };
+        }
+
+        private XDocument GenerateDocumentWithTwoConstantsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
+        {
+            return GenerateDocument(GenerateOptionFuncWithTwoConstantsAndSameNames(expectedAttribute, name, value));
+        }
+
+        private Func<IEnumerable<XElement>> GenerateOptionFuncWithTwoConstantsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
+        {
+            return () => new[] { GenerateConstant(expectedAttribute, name, value), GenerateConstant(expectedAttribute, name, value) };
         }
 
         private XDocument GenerateDocumentWithOneOptionAndOneGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object optionValue = null, object groupValue = null)
@@ -539,6 +612,22 @@ namespace SetMeta.Tests.Impl
         private Func<IEnumerable<XElement>> GenerateOptionFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
         {
             return () => new[] { GenerateOption(expectedAttribute, name, value, behaviourFunc) };
+        }
+
+        private XElement GenerateConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
+        {
+            var constant = new XElement(Keys.Constant);
+
+            foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
+            {
+                AddAttribute(constant,
+                    optionAttribute,
+                    name == null || name != optionAttribute.Name
+                        ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
+                        : value);
+            }
+
+            return constant;
         }
 
         private XElement GenerateOption(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
