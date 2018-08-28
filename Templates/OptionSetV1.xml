@@ -64,7 +64,10 @@
   <!--Может быть 0..*-->
   <group name="name1" displayName="displayName1" description="description1">
     <!--Может быть 0..*-->
-    <option name="name3"/>
+    <option name="name3">
+      <!--Может быть 0..*-->
+      <suggestion name="name6"/>
+    </option>
     <!--Может быть 0..*-->
     <group name="name2" displayName="displayName2" description="description2">
       <option name="name4"/>
