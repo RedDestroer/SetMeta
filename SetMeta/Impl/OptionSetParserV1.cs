@@ -40,8 +40,47 @@ namespace SetMeta.Impl
             optionSet.Version = Version;
 
             ParseOptions(body, optionSet.Options);
+            ParseGroups(body, optionSet.Groups);
 
             return optionSet;
+        }
+
+        private void ParseGroups(XElement root, IDictionary<string, Group> groups)
+        {
+            root.Elements(Keys.Group)
+                .ForEach(element =>
+                {
+                    var group = ParseGroup(element);
+                    if (KeyIsValid(group.Id))
+                    {
+                        if (KeyIsUnique(group.Id, groups))
+                        {
+                            groups[group.Id] = group;
+                        }
+                        else
+                        {
+                            _optionSetValidator.AddError($"Key '{group.Id}' isn`t unique among groups.", element);
+                        }
+                    }
+                    else
+                    {
+                        _optionSetValidator.AddError($"Key '{group.Id}' ('{group.Name}') isn`t valid.", element);
+                    }
+                });
+        }
+
+        private Group ParseGroup(XElement root)
+        {
+            var group = new Group();
+
+            group.Name = TryGetMandatoryAttributeValue<string>(root, GroupAttributeKeys.Name);
+            group.Id = CreateId(group.Name);
+            group.DisplayName = root.TryGetAttributeValue(GroupAttributeKeys.DisplayName, GroupAttributeDefaults.DisplayName);
+            group.Description = root.TryGetAttributeValue(GroupAttributeKeys.Description, GroupAttributeDefaults.Description);
+            ParseOptions(root, group.Options);
+            ParseGroups(root, group.Groups);
+
+            return group;
         }
 
         private void ParseOptions(XElement root, IDictionary<string, Option> options)
@@ -71,6 +110,11 @@ namespace SetMeta.Impl
         private bool KeyIsUnique(string id, IDictionary<string, Option> options)
         {
             return !options.ContainsKey(id);
+        }
+
+        private bool KeyIsUnique(string id, IDictionary<string, Group> groups)
+        {
+            return !groups.ContainsKey(id);
         }
 
         private bool KeyIsValid(string id)

@@ -17,6 +17,7 @@ namespace SetMeta.Entities
     {
         public const string OptionSet = "optionSet";
         public const string Option = "option";
+        public const string Group = "group";
     }
 
     internal static class OptionSetAttributeKeys
