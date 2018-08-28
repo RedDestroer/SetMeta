@@ -330,13 +330,13 @@ namespace SetMeta.Tests.Impl
         }
 
         [Test]
-        public void Parse_WhenWePassInvalidOptionName_OptionSetValidatorLogError()
+        public void Parse_WhenWePassNotUniqueOptionName_OptionSetValidatorLogError()
         {
             var attributeValue = Fake<string>();
             var mock = Fake<Mock<IOptionSetValidator>>();
             var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' isn`t unique among options.";
 
-            var document = GenerateDocumentWithTwoOptionsAndSameName(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+            var document = GenerateDocumentWithTwoOptionsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
 
             var actual = Sut.Parse(CreateReader(document), mock.Object);
 
@@ -344,7 +344,7 @@ namespace SetMeta.Tests.Impl
         }
 
         [Test]
-        public void Parse_WhenWePassInvalidName_OptionSetValidatorLogError()
+        public void Parse_WhenWePassInvalidOptionName_OptionSetValidatorLogError()
         {
             var attributeValue = "#123";
             var mock = Fake<Mock<IOptionSetValidator>>();
@@ -358,16 +358,95 @@ namespace SetMeta.Tests.Impl
         }
 
         [Test]
-        public void Parse_WhenWePassName_IdIsGeneratedFromName()
+        public void Parse_WhenWePassNotUniqueGroupName_OptionSetValidatorLogError()
         {
             var attributeValue = Fake<string>();
-            var expectedId = OptionSetParser.CreateId(attributeValue);
+            var mock = Fake<Mock<IOptionSetValidator>>();
+            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' isn`t unique among groups.";
 
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+            var document = GenerateDocumentWithTwoGroupsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+
+            var actual = Sut.Parse(CreateReader(document), mock.Object);
+
+            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+        }
+
+        [Test]
+        public void Parse_WhenWePassInvalidGroupName_OptionSetValidatorLogError()
+        {
+            var attributeValue = "#123";
+            var mock = Fake<Mock<IOptionSetValidator>>();
+            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' ('{attributeValue}') isn`t valid.";
+
+            var document = GenerateDocumentWithOneGroup(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+
+            var actual = Sut.Parse(CreateReader(document), mock.Object);
+
+            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+        }
+
+        [TestCase("name", typeof(string), nameof(Group.Name))]
+        [TestCase("description", typeof(string), nameof(Group.Description))]
+        [TestCase("displayName", typeof(string), nameof(Group.DisplayName))]
+        public void Parse_WhenItPresentInGroup_ShouldReadAttribute(string attributeName, Type attributeValueType, string propertyName)
+        {
+            DataConversion.AddParser(delegate (string input, out object value)
+            {
+                value = input;
+                return true;
+            });
+
+            var attributeValue = Fake(attributeValueType);
+            var groupAttributeValue = Fake(attributeValueType);
+
+            var document = GenerateDocumentWithOneOptionAndOneGroup(a => a.Use == XmlSchemaUse.Required || a.Name == attributeName, attributeName, attributeValue, groupAttributeValue);
 
             var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Options.First().Value.Id, Is.EqualTo(expectedId));
+            Assert.That(actual.Groups, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+
+            var propertyInfo = typeof(Group).GetProperty(propertyName);
+            Assert.That(propertyInfo, Is.Not.Null);
+            Assert.That(propertyInfo.GetValue(actual.Groups.First().Value), Is.EqualTo(groupAttributeValue));
+        }
+
+        [TestCase(GroupAttributeKeys.Description, typeof(string), nameof(Group.Description), GroupAttributeDefaults.Description)]
+        [TestCase(GroupAttributeKeys.DisplayName, typeof(string), nameof(Group.DisplayName), GroupAttributeDefaults.DisplayName)]
+        public void Parse_WhenItAbsentInGroup_ShouldReturnDefaultValue(string attributeName, Type attributeValueType, string propertyName, object attributeValue)
+        {
+            DataConversion.AddParser(delegate (string input, out object value)
+            {
+                value = input;
+                return true;
+            });
+
+            var document = GenerateDocumentWithOneGroup(a => a.Use == XmlSchemaUse.Required);
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Groups, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+
+            var propertyInfo = typeof(Group).GetProperty(propertyName);
+            Assert.That(propertyInfo, Is.Not.Null);
+            Assert.That(propertyInfo.GetValue(actual.Groups.First().Value), Is.EqualTo(attributeValue));
+        }
+
+        [Test]
+        public void Parse_WhenWePassName_IdIsGeneratedFromName()
+        {
+            var optionValue = Fake<string>();
+            var groupValue = Fake<string>();
+            var expectedOptionId = OptionSetParser.CreateId(optionValue);
+            var expectedGroupId = OptionSetParser.CreateId(groupValue);
+
+            var document = GenerateDocumentWithOneOptionAndOneGroup(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionValue, groupValue);
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Options.First().Value.Id, Is.EqualTo(expectedOptionId));
+            Assert.That(actual.Groups.First().Value.Id, Is.EqualTo(expectedGroupId));
 
         }
 
@@ -412,7 +491,37 @@ namespace SetMeta.Tests.Impl
             return new XmlTextReader(stream);
         }
 
-        private XDocument GenerateDocumentWithTwoOptionsAndSameName(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
+        private XDocument GenerateDocumentWithOneOptionAndOneGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object optionValue = null, object groupValue = null)
+        {
+            return GenerateDocument(GenerateGroupAndOptionFunc(expectedAttribute, name, optionValue, groupValue));
+        }
+
+        private Func<IEnumerable<XElement>> GenerateGroupAndOptionFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object optionValue = null, object groupValue = null)
+        {
+            return () => new[] { GenerateOption(expectedAttribute, name, optionValue), GenerateGroup(expectedAttribute, name, groupValue) };
+        }
+
+        private XDocument GenerateDocumentWithTwoGroupsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
+        {
+            return GenerateDocument(GenerateOptionFuncWithTwoGroupsAndSameNames(expectedAttribute, name, value));
+        }
+
+        private Func<IEnumerable<XElement>> GenerateOptionFuncWithTwoGroupsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
+        {
+            return () => new[] { GenerateGroup(expectedAttribute, name, value), GenerateGroup(expectedAttribute, name, value) };
+        }
+
+        private XDocument GenerateDocumentWithOneGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
+        {
+            return GenerateDocument(GenerateGroupFunc(expectedAttribute, name, value));
+        }
+
+        private Func<IEnumerable<XElement>> GenerateGroupFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
+        {
+            return () => new[] { GenerateGroup(expectedAttribute, name, value) };
+        }
+
+        private XDocument GenerateDocumentWithTwoOptionsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
         {
             return GenerateDocument(GenerateOptionFuncWithTwoOptionsAndSameNames(expectedAttribute, name, value, behaviourFunc));
         }
@@ -451,6 +560,22 @@ namespace SetMeta.Tests.Impl
             }
 
             return option;
+        }
+
+        private XElement GenerateGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
+        {
+            var group = new XElement(Keys.Group);
+
+            foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
+            {
+                AddAttribute(group,
+                    optionAttribute,
+                    name == null || name != optionAttribute.Name
+                        ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
+                        : value);
+            }
+
+            return group;
         }
 
         private XDocument GenerateDocument(Func<IEnumerable<XElement>> optionsFunc)
