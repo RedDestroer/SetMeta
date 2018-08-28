@@ -39,10 +39,35 @@ namespace SetMeta.Impl
 
             optionSet.Version = Version;
 
+            ParseConstants(body, optionSet.Constants);
             ParseOptions(body, optionSet.Options);
             ParseGroups(body, optionSet.Groups);
 
             return optionSet;
+        }
+
+        private void ParseConstants(XElement root, IDictionary<string, Constant> constants)
+        {
+            root.Elements(Keys.Constant)
+                .ForEach(element =>
+                {
+                    var constant = ParseConstant(element);
+                    if (KeyIsValid(constant.Name))
+                    {
+                        if (KeyIsUnique(constant.Name, constants))
+                        {
+                            constants[constant.Name] = constant;
+                        }
+                        else
+                        {
+                            _optionSetValidator.AddError($"Key '{constant.Name}' isn`t unique among constants.", element);
+                        }
+                    }
+                    else
+                    {
+                        _optionSetValidator.AddError($"Key '{constant.Name}' ('{constant.Name}') isn`t valid.", element);
+                    }
+                });
         }
 
         private void ParseGroups(XElement root, IDictionary<string, Group> groups)
@@ -83,6 +108,17 @@ namespace SetMeta.Impl
             return group;
         }
 
+        private Constant ParseConstant(XElement root)
+        {
+            var constant = new Constant();
+
+            constant.Name = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.Name);
+            constant.ValueType = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.ValueType);
+            constant.Value = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.Value);
+
+            return constant;
+        }
+
         private void ParseOptions(XElement root, IDictionary<string, Option> options)
         {
             root.Elements(Keys.Option)
@@ -115,6 +151,11 @@ namespace SetMeta.Impl
         private bool KeyIsUnique(string id, IDictionary<string, Group> groups)
         {
             return !groups.ContainsKey(id);
+        }
+
+        private bool KeyIsUnique(string id, IDictionary<string, Constant> constants)
+        {
+            return !constants.ContainsKey(id);
         }
 
         private bool KeyIsValid(string id)
