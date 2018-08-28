@@ -2,7 +2,6 @@
 {
     public class Constant
     {
-        public string Id { get; set; }
         public string Name { get; set; }
         public object Value { get; set; }
         public string ValueType { get; set; }

@@ -52,20 +52,20 @@ namespace SetMeta.Impl
                 .ForEach(element =>
                 {
                     var constant = ParseConstant(element);
-                    if (KeyIsValid(constant.Id))
+                    if (KeyIsValid(constant.Name))
                     {
-                        if (KeyIsUnique(constant.Id, constants))
+                        if (KeyIsUnique(constant.Name, constants))
                         {
-                            constants[constant.Id] = constant;
+                            constants[constant.Name] = constant;
                         }
                         else
                         {
-                            _optionSetValidator.AddError($"Key '{constant.Id}' isn`t unique among constants.", element);
+                            _optionSetValidator.AddError($"Key '{constant.Name}' isn`t unique among constants.", element);
                         }
                     }
                     else
                     {
-                        _optionSetValidator.AddError($"Key '{constant.Id}' ('{constant.Name}') isn`t valid.", element);
+                        _optionSetValidator.AddError($"Key '{constant.Name}' ('{constant.Name}') isn`t valid.", element);
                     }
                 });
         }
@@ -113,7 +113,6 @@ namespace SetMeta.Impl
             var constant = new Constant();
 
             constant.Name = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.Name);
-            constant.Id = CreateId(constant.Name);
             constant.ValueType = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.ValueType);
             constant.Value = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.Value);
 
