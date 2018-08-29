@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -13,6 +14,7 @@ using NUnit.Framework;
 using SetMeta.Abstract;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
+using SetMeta.Entities.Suggestions;
 using SetMeta.Impl;
 using SetMeta.Tests.Util;
 using SetMeta.Util;
@@ -503,6 +505,132 @@ namespace SetMeta.Tests.Impl
             Assert.That(propertyInfo.GetValue(actual.Constants.First().Value), Is.EqualTo(attributeValue));
         }
 
+        [Test]
+        public void Parse_WhenItPresentMaxLengthSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var max = Fake<UInt16>();
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMaxLengthSuggestion(max), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MaxLength));
+        }
+
+        [Test]
+        public void Parse_WhenItPresentMaxLinesSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var max = Fake<byte>();
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMaxLinesSuggestion(max), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MaxLines));
+        }
+
+        [Test]
+        public void Parse_WhenItPresentMinLengthSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var min = Fake<UInt16>();
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMinLengthSuggestion(min), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MinLength));
+        }
+
+        [Test]
+        public void Parse_WhenItPresentMinLinesSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var min = Fake<byte>();
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMinLinesSuggestion(min), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MinLines));
+        }
+
+        [Test]
+        public void Parse_WhenItPresentMultiLineSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMultiLineSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Multiline));
+        }
+
+        [Test]
+        public void Parse_WhenItPresentNotifiableSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateNotifiableSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Notifiable));
+        }
+
+        [Test]
+        public void Parse_WhenItPresentNotifyOnChangeSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateNotifyOnChangeSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.NotifyOnChange));
+        }
+
+        [Test]
+        public void Parse_WhenItPresentRegexSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var value = Fake<string>();
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateRegexSuggestion(value), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Regex));
+        }
+
+        [Test]
+        public void Parse_WhenWePassNotUniqueSuggestion_OptionSetValidatorLogError()
+        {
+            var value = Fake<string>();
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+
+            var mock = Fake<Mock<IOptionSetValidator>>();
+            var expectedMessage = $"Suggestion with type '{SuggestionType.Regex}' isn`t unique among option '{optionName}'.";
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndTwoSameSuggestions(a => a.Use == XmlSchemaUse.Required || a.Name == ConstantAttributeKeys.Name, ConstantAttributeKeys.Name, groupName, CreateRegexSuggestion(value), CreateRegexSuggestion(value), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+
+            var actual = Sut.Parse(CreateReader(document), mock.Object);
+
+            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+        }
+        
         private List<ListItem> FakeManyListItems(IOptionValue optionValue)
         {
             return FakeMany<ListItem>(o => o.FromFactory(() => new ListItem(Fake(optionValue.ValueType), Fake<string>())))
@@ -544,6 +672,26 @@ namespace SetMeta.Tests.Impl
             return new XmlTextReader(stream);
         }
 
+        private XDocument GenerateDocumentWithOneGroupWithOptionAndTwoSameSuggestions(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestionOne, XElement suggestionTwo, XElement option)
+        {
+            return GenerateDocument(GenerateOneGroupWithOptionAndTwoSameSuggestionsFunc(expectedAttribute, name, value, suggestionOne, suggestionTwo, option));
+        }
+
+        private Func<IEnumerable<XElement>> GenerateOneGroupWithOptionAndTwoSameSuggestionsFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestionOne, XElement suggestionTwo, XElement option)
+        {
+            return () => new[] { GenerateGroupWithTowSameSuggestion(expectedAttribute, name, value, suggestionOne, suggestionTwo, option) };
+        }
+
+        private XDocument GenerateDocumentWithOneGroupWithOptionAndSuggestion(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestion, XElement option)
+        {
+            return GenerateDocument(GenerateOneGroupWithOptionAndSuggestionFunc(expectedAttribute, name, value, suggestion, option));
+        }
+
+        private Func<IEnumerable<XElement>> GenerateOneGroupWithOptionAndSuggestionFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestion, XElement option)
+        {
+            return () => new[] { GenerateGroup(expectedAttribute, name, value, suggestion, option) };
+        }
+        
         private XDocument GenerateDocumentWithOneConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
         {
             return GenerateDocument(GenerateConstantFunc(expectedAttribute, name, value));
@@ -651,7 +799,7 @@ namespace SetMeta.Tests.Impl
             return option;
         }
 
-        private XElement GenerateGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
+        private XElement GenerateGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, XElement suggestion = null, XElement option = null)
         {
             var group = new XElement(Keys.Group);
 
@@ -662,6 +810,35 @@ namespace SetMeta.Tests.Impl
                     name == null || name != optionAttribute.Name
                         ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
                         : value);
+            }
+
+            if (option != null)
+            {
+                option.Add(suggestion);
+                group.Add(option);
+            }
+
+            return group;
+        }
+
+        private XElement GenerateGroupWithTowSameSuggestion(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, XElement suggestionOne = null, XElement suggestionTwo = null, XElement option = null)
+        {
+            var group = new XElement(Keys.Group);
+
+            foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
+            {
+                AddAttribute(group,
+                    optionAttribute,
+                    name == null || name != optionAttribute.Name
+                        ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
+                        : value);
+            }
+
+            if (option != null)
+            {
+                option.Add(suggestionOne);
+                option.Add(suggestionTwo);
+                group.Add(option);
             }
 
             return group;
@@ -771,6 +948,46 @@ namespace SetMeta.Tests.Impl
                 new XAttribute("query", query), 
                 new XAttribute("valueFieldName", memberValue), 
                 new XAttribute("displayValueFieldName", displayValue));
+        }
+
+        private XElement CreateMaxLengthSuggestion(UInt16 max)
+        {
+            return new XElement("suggestion",new XElement("maxLength", new XAttribute("value", max)));
+        }
+
+        private XElement CreateMaxLinesSuggestion(byte max)
+        {
+            return new XElement("suggestion", new XElement("maxLines", new XAttribute("value", max)));
+        }
+
+        private XElement CreateMinLengthSuggestion(UInt16 min)
+        {
+            return new XElement("suggestion", new XElement("minLength", new XAttribute("value", min)));
+        }
+
+        private XElement CreateMinLinesSuggestion(byte min)
+        {
+            return new XElement("suggestion", new XElement("minLines", new XAttribute("value", min)));
+        }
+
+        private XElement CreateMultiLineSuggestion()
+        {
+            return new XElement("suggestion", new XElement("multiline"));
+        }
+
+        private XElement CreateNotifiableSuggestion()
+        {
+            return new XElement("suggestion", new XElement("notifiable"));
+        }
+
+        private XElement CreateNotifyOnChangeSuggestion()
+        {
+            return new XElement("suggestion", new XElement("notifyOnChange"));
+        }
+
+        private XElement CreateRegexSuggestion(string value)
+        {
+            return new XElement("suggestion", new XElement("regex", new XAttribute("value", value)));
         }
     }
 }

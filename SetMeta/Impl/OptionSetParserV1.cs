@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using SetMeta.Abstract;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
+using SetMeta.Entities.Suggestions;
 using SetMeta.Util;
 
 namespace SetMeta.Impl
@@ -104,10 +105,121 @@ namespace SetMeta.Impl
             group.Description = root.TryGetAttributeValue(GroupAttributeKeys.Description, GroupAttributeDefaults.Description);
             ParseOptions(root, group.Options);
             ParseGroups(root, group.Groups);
+            ParseSuggestions(root, group.Suggestions);
 
             return group;
         }
 
+        private void ParseSuggestions(XElement root, IDictionary<string, IDictionary<SuggestionType, Suggestion>> suggestions)
+        {
+            root.Elements(Keys.Option)
+                .ForEach(element =>
+                {
+                    var tempDictionary = new Dictionary<SuggestionType, Suggestion>();
+
+                    element.Elements(Keys.Suggestion)
+                        .ForEach(suggestionElement =>
+                        {
+                            var suggestion = CreateSuggestion(suggestionElement);
+
+                            if (tempDictionary.ContainsKey(suggestion.SuggestionType))
+                            {
+                                string optionName = element.TryGetAttributeValue("name", "optionName");
+                                _optionSetValidator.AddError($"Suggestion with type '{suggestion.SuggestionType}' isn`t unique among option '{optionName}'.", element);                              
+                            }
+                            else
+                            {
+                                tempDictionary.Add(suggestion.SuggestionType, suggestion);
+                            }
+                        });
+
+                    string name = element.TryGetAttributeValue("name", "optionName");
+                    string id = CreateId(name);
+
+                    if (suggestions.ContainsKey(id))
+                    {
+                        _optionSetValidator.AddError($"Key '{id}' isn`t unique among options.", element);
+                    }
+                    else
+                    {
+                        suggestions.Add(id, tempDictionary);
+                    }
+                });
+        }
+
+        private Suggestion CreateSuggestion(XElement root)
+        {
+            var elements = root.Elements();
+
+            foreach (var element in elements)
+            {
+                if (TryCreateSuggestion(element, out var suggestion))
+                {
+                    return suggestion;
+                }
+            }
+
+            return null;
+        }
+
+        private bool TryCreateSuggestion(XElement root, out Suggestion suggestion)
+        {
+            string name = root.Name.LocalName;
+            suggestion = null;
+
+            switch (name)
+            {
+                case "maxLength":
+                {
+                    UInt16 max = root.GetAttributeValue<UInt16>("value");
+                    suggestion = new MaxLengthSuggestion {Value = max};
+                }
+                    break;
+                case "maxLines":
+                {
+                    byte max = root.GetAttributeValue<byte>("value");
+                    suggestion = new MaxLinesSuggestion {Value = max};
+                }
+                    break;
+                case "minLength":
+                {
+                    UInt16 min = root.GetAttributeValue<UInt16>("value");
+                    suggestion = new MinLengthSuggestion { Value = min };
+                }
+                    break;
+                case "minLines":
+                {
+                    byte min = root.GetAttributeValue<byte>("value");
+                    suggestion = new MinLinesSuggestion { Value = min };
+                }
+                    break;
+                case "multiline":
+                {
+                    suggestion = new MultiLineSuggestion();
+                }
+                    break;
+                case "notifiable":
+                {
+                    suggestion = new NotifiableSuggestion();
+                }
+                    break;
+                case "notifyOnChange":
+                {
+                    suggestion = new NotifyOnChangeSuggestion();
+                }
+                    break;
+                case "regex":
+                {
+                    string value = root.GetAttributeValue<string>("value");
+                    string validation = root.TryGetAttributeValue<string>("validation", null);
+                    suggestion = new RegexSuggestion { Value = value, Validation = validation};
+                }
+                    break;
+            }
+
+            return suggestion != null;
+        }
+        
         private Constant ParseConstant(XElement root)
         {
             var constant = new Constant();
