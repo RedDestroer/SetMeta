@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using AutoFixture.AutoMoq;
-using AutoFixture.Idioms;
-using AutoFixture.NUnit3;
 using NUnit.Framework;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;

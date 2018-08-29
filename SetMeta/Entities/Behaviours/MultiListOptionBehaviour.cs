@@ -10,9 +10,11 @@ namespace SetMeta.Entities.Behaviours
         internal MultiListOptionBehaviour(IOptionValue optionValue, IEnumerable<ListItem> listItems, bool sorted = false, string separator = ";")
             : base(optionValue)
         {
+            // ReSharper disable once PossibleMultipleEnumeration
             Validate.NotNull(listItems, nameof(listItems));
             Validate.NotNull(separator, nameof(separator));
 
+            // ReSharper disable once PossibleMultipleEnumeration
             ListItems = new List<ListItem>(listItems);
             Sorted = sorted;
             Separator = separator;

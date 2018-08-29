@@ -45,6 +45,7 @@ namespace SetMeta.Tests.TestDataCreators
         {
             var body = new XDocument();
 
+            // ReSharper disable once RedundantTypeArgumentsOfMethod
             _options.ForEach<XElement>(element => body.Add(element));
 
             return body;
