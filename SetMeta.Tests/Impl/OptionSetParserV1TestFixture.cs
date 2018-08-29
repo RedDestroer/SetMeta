@@ -630,7 +630,7 @@ namespace SetMeta.Tests.Impl
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
         }
-
+        
         private List<ListItem> FakeManyListItems(IOptionValue optionValue)
         {
             return FakeMany<ListItem>(o => o.FromFactory(() => new ListItem(Fake(optionValue.ValueType), Fake<string>())))
@@ -691,7 +691,7 @@ namespace SetMeta.Tests.Impl
         {
             return () => new[] { GenerateGroup(expectedAttribute, name, value, suggestion, option) };
         }
-
+        
         private XDocument GenerateDocumentWithOneConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
         {
             return GenerateDocument(GenerateConstantFunc(expectedAttribute, name, value));

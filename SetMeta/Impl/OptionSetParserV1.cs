@@ -219,7 +219,7 @@ namespace SetMeta.Impl
 
             return suggestion != null;
         }
-
+        
         private Constant ParseConstant(XElement root)
         {
             var constant = new Constant();
