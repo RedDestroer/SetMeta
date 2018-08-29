@@ -1,6 +1,8 @@
-﻿using NUnit.Framework;
+﻿using System.Reflection;
+using NUnit.Framework;
 using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
+using SetMeta.Tests.Util;
 
 namespace SetMeta.Tests.Entities.Behaviours
 {
@@ -9,28 +11,9 @@ namespace SetMeta.Tests.Entities.Behaviours
         : AutoFixtureBase
     {
         [Test]
-        public void SqlFlagListOptionBehaviour_WhenWePassNullOptionValue_ThrowException()
+        public void SqlFlagListOptionBehaviour_ConstructorNullChecks()
         {
-            void Delegate()
-            {
-                new SqlFlagListOptionBehaviour(null, "");
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionValue");
-        }
-
-        [Test]
-        public void SqlFlagListOptionBehaviour_WhenWePassNullQuery_ThrowException()
-        {
-            var optionValueFactory = new OptionValueFactory();
-            var optionValue = optionValueFactory.Create(OptionValueType.String);
-
-            void Delegate()
-            {
-                new SqlFlagListOptionBehaviour(optionValue, null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "query");
+            typeof(SqlFlagListOptionBehaviour).ShouldNotAcceptNullConstructorArguments(AutoFixture, BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
         [Test]
@@ -38,9 +21,9 @@ namespace SetMeta.Tests.Entities.Behaviours
         {
             var optionValueFactory = new OptionValueFactory();
             var optionValue = optionValueFactory.Create(OptionValueType.String);
-            var query = "Test Query";
-            var value = "Test Value";
-            var displayValue = "Test Display Value";
+            var query = Fake<string>();
+            var value = Fake<string>();
+            var displayValue = Fake<string>();
 
             var actual = new SqlFlagListOptionBehaviour(optionValue, query, value, displayValue);
 

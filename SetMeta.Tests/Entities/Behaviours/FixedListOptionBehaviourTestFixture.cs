@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System.Reflection;
 using NUnit.Framework;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
+using SetMeta.Tests.Util;
 
 namespace SetMeta.Tests.Entities.Behaviours
 {
@@ -11,14 +12,9 @@ namespace SetMeta.Tests.Entities.Behaviours
         : AutoFixtureBase
     {
         [Test]
-        public void FixedListOptionBehaviour_WhenWePassNull_ThrowException()
+        public void FixedListOptionBehaviour_ConstructorNullChecks()
         {
-            void Delegate()
-            {
-                new FixedListOptionBehaviour(null, Fake<List<ListItem>>());
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionValue");
+            typeof(FixedListOptionBehaviour).ShouldNotAcceptNullConstructorArguments(AutoFixture, BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
         [Test]
@@ -26,7 +22,7 @@ namespace SetMeta.Tests.Entities.Behaviours
         {
             var optionValueFactory = new OptionValueFactory();
             var optionValue = optionValueFactory.Create(OptionValueType.String);
-            var list = Fake<List<ListItem>>();
+            var list = FakeMany<ListItem>();
 
             var actual = new FixedListOptionBehaviour(optionValue, list);
 

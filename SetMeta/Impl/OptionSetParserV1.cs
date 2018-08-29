@@ -363,26 +363,26 @@ namespace SetMeta.Impl
                 case "sqlFixedList":
                 {
                     string query = root.GetAttributeValue<string>("query");
-                    string valueFieldName = root.GetAttributeValue<string>("valueFieldName");
-                    string displayValueFieldName = root.GetAttributeValue<string>("displayValueFieldName");
+                    string valueFieldName = root.TryGetAttributeValue("valueFieldName", "value");
+                    string displayValueFieldName = root.TryGetAttributeValue("displayValueFieldName", "displayValue");
                     optionBehaviour = new SqlFixedListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
                 }
                     break;
                 case "sqlFlagList":
                 {
                     string query = root.GetAttributeValue<string>("query");
-                    string valueFieldName = root.GetAttributeValue<string>("valueFieldName");
-                    string displayValueFieldName = root.GetAttributeValue<string>("displayValueFieldName");
+                    string valueFieldName = root.TryGetAttributeValue("valueFieldName", "value");
+                    string displayValueFieldName = root.TryGetAttributeValue("displayValueFieldName", "displayValue");
                     optionBehaviour = new SqlFlagListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
                 }
                     break;
                 case "sqlMultiList":
                 {
                     string query = root.GetAttributeValue<string>("query");
-                    bool sorted = root.GetAttributeValue<bool>("sorted");
-                    string separator = root.GetAttributeValue<string>("separator");
-                    string valueFieldName = root.GetAttributeValue<string>("valueFieldName");
-                    string displayValueFieldName = root.GetAttributeValue<string>("displayValueFieldName");
+                    bool sorted = root.TryGetAttributeValue("sorted", false);
+                    string separator = root.TryGetAttributeValue("separator", ";");
+                    string valueFieldName = root.TryGetAttributeValue("valueFieldName", "value");
+                    string displayValueFieldName = root.TryGetAttributeValue("displayValueFieldName", "displayValue");
                     optionBehaviour = new SqlMultiListOptionBehaviour(optionValue, query, sorted, separator, valueFieldName, displayValueFieldName);
                 }
                     break;

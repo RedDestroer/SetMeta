@@ -1,15 +1,19 @@
 ﻿using System.Collections.Generic;
 using SetMeta.Abstract;
+using SetMeta.Util;
 
 namespace SetMeta.Entities.Behaviours
 {
     public class MultiListOptionBehaviour
         : OptionBehaviour
     {
-        internal MultiListOptionBehaviour(IOptionValue optionValue, IEnumerable<ListItem> validItems, bool sorted = false, string separator = ";")
+        internal MultiListOptionBehaviour(IOptionValue optionValue, IEnumerable<ListItem> listItems, bool sorted = false, string separator = ";")
             : base(optionValue)
         {
-            ListItems = new List<ListItem>(validItems);
+            Validate.NotNull(listItems, nameof(listItems));
+            Validate.NotNull(separator, nameof(separator));
+
+            ListItems = new List<ListItem>(listItems);
             Sorted = sorted;
             Separator = separator;
         }

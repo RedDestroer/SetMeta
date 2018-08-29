@@ -1,6 +1,8 @@
-﻿using NUnit.Framework;
+﻿using System.Reflection;
+using NUnit.Framework;
 using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
+using SetMeta.Tests.Util;
 
 namespace SetMeta.Tests.Entities.Behaviours
 {
@@ -9,25 +11,9 @@ namespace SetMeta.Tests.Entities.Behaviours
         : AutoFixtureBase
     {
         [Test]
-        public void RangedOptionBehaviour_WhenWePassNull_ThrowException()
+        public void RangedOptionBehaviour_ConstructorNullChecks()
         {
-            void Delegate()
-            {
-                new RangedOptionBehaviour(null, Fake<string>(), Fake<string>());
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionValue");
-        }
-
-        [Test]
-        public void RangedOptionBehaviourWithBool_WhenWePassNull_ThrowException()
-        {
-            void Delegate()
-            {
-                new RangedOptionBehaviour(null, Fake<string>(), Fake<bool>());
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionValue");
+            typeof(RangedOptionBehaviour).ShouldNotAcceptNullConstructorArguments(AutoFixture, BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
         [Test]

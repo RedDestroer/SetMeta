@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -14,7 +13,6 @@ using NUnit.Framework;
 using SetMeta.Abstract;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
-using SetMeta.Entities.Suggestions;
 using SetMeta.Impl;
 using SetMeta.Tests.Util;
 using SetMeta.Util;
@@ -50,14 +48,9 @@ namespace SetMeta.Tests.Impl
         }
 
         [Test]
-        public void OptionSetParserV1_WhenWePassNull_ThrowException()
+        public void OptionSetParserV1_ConstructorNullChecks()
         {
-            void Delegate()
-            {
-                new OptionSetParserV1(null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionValueFactory");
+            typeof(OptionSetParserV1).ShouldNotAcceptNullConstructorArguments(AutoFixture);
         }
 
         [Test]
@@ -340,7 +333,7 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithTwoOptionsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
 
-            var actual = Sut.Parse(CreateReader(document), mock.Object);
+            Sut.Parse(CreateReader(document), mock.Object);
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
         }
@@ -354,7 +347,7 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
 
-            var actual = Sut.Parse(CreateReader(document), mock.Object);
+            Sut.Parse(CreateReader(document), mock.Object);
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
         }
@@ -368,7 +361,7 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithTwoGroupsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == GroupAttributeKeys.Name, GroupAttributeKeys.Name, attributeValue);
 
-            var actual = Sut.Parse(CreateReader(document), mock.Object);
+            Sut.Parse(CreateReader(document), mock.Object);
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
         }
@@ -382,7 +375,7 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneGroup(a => a.Use == XmlSchemaUse.Required || a.Name == GroupAttributeKeys.Name, GroupAttributeKeys.Name, attributeValue);
 
-            var actual = Sut.Parse(CreateReader(document), mock.Object);
+            Sut.Parse(CreateReader(document), mock.Object);
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
         }
@@ -449,7 +442,6 @@ namespace SetMeta.Tests.Impl
 
             Assert.That(actual.Options.First().Value.Id, Is.EqualTo(expectedOptionId));
             Assert.That(actual.Groups.First().Value.Id, Is.EqualTo(expectedGroupId));
-
         }
 
         [Test]
@@ -461,7 +453,7 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithTwoConstantsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == ConstantAttributeKeys.Name, ConstantAttributeKeys.Name, attributeValue);
 
-            var actual = Sut.Parse(CreateReader(document), mock.Object);
+            Sut.Parse(CreateReader(document), mock.Object);
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
         }
@@ -475,13 +467,12 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
 
-            var actual = Sut.Parse(CreateReader(document), mock.Object);
+            Sut.Parse(CreateReader(document), mock.Object);
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
         }
 
         [TestCase("name", typeof(string), nameof(Constant.Name))]
-        //[TestCase("value", typeof(string), nameof(Constant.Value))]
         [TestCase("valueType", typeof(string), nameof(Constant.ValueType))]
         public void Parse_WhenItPresentInConstant_ShouldReadAttribute(string attributeName, Type attributeValueType, string propertyName)
         {
@@ -508,7 +499,7 @@ namespace SetMeta.Tests.Impl
         [Test]
         public void Parse_WhenItPresentMaxLengthSuggestion_ShouldReturnCorrectSuggestion()
         {
-            var max = Fake<UInt16>();
+            var max = Fake<ushort>();
             var groupName = Fake<string>();
             var optionName = Fake<string>();
 
@@ -626,7 +617,7 @@ namespace SetMeta.Tests.Impl
 
             var document = GenerateDocumentWithOneGroupWithOptionAndTwoSameSuggestions(a => a.Use == XmlSchemaUse.Required || a.Name == ConstantAttributeKeys.Name, ConstantAttributeKeys.Name, groupName, CreateRegexSuggestion(value), CreateRegexSuggestion(value), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
 
-            var actual = Sut.Parse(CreateReader(document), mock.Object);
+            Sut.Parse(CreateReader(document), mock.Object);
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
         }
@@ -950,7 +941,7 @@ namespace SetMeta.Tests.Impl
                 new XAttribute("displayValueFieldName", displayValue));
         }
 
-        private XElement CreateMaxLengthSuggestion(UInt16 max)
+        private XElement CreateMaxLengthSuggestion(ushort max)
         {
             return new XElement("suggestion",new XElement("maxLength", new XAttribute("value", max)));
         }
@@ -960,7 +951,7 @@ namespace SetMeta.Tests.Impl
             return new XElement("suggestion", new XElement("maxLines", new XAttribute("value", max)));
         }
 
-        private XElement CreateMinLengthSuggestion(UInt16 min)
+        private XElement CreateMinLengthSuggestion(ushort min)
         {
             return new XElement("suggestion", new XElement("minLength", new XAttribute("value", min)));
         }

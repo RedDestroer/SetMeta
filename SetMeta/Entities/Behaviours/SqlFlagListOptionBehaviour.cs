@@ -6,12 +6,12 @@ namespace SetMeta.Entities.Behaviours
     public class SqlFlagListOptionBehaviour
         : OptionBehaviour
     {
-        internal SqlFlagListOptionBehaviour(IOptionValue optionValue, string query, string valueMember = "value", string displayMember = "displayValue")
+        internal SqlFlagListOptionBehaviour(IOptionValue optionValue, string query, string valueMember, string displayMember)
             : base(optionValue)
         {
             Query = query ?? throw new ArgumentNullException(nameof(query));
-            ValueMember = valueMember;
-            DisplayMember = displayMember;
+            ValueMember = valueMember ?? throw new ArgumentNullException(nameof(valueMember));
+            DisplayMember = displayMember ?? throw new ArgumentNullException(nameof(displayMember));
         }
 
         public string Query { get; }

@@ -1,22 +1,25 @@
-﻿using SetMeta.Abstract;
+﻿using System;
+using SetMeta.Abstract;
 
 namespace SetMeta.Entities.Behaviours
 {
     public class RangedOptionBehaviour
         : OptionBehaviour
     {
-        public RangedOptionBehaviour(IOptionValue optionValue, string minValue, string maxValue)
+        internal RangedOptionBehaviour(IOptionValue optionValue, string minValue, string maxValue)
             : base(optionValue)
         {
             IsMinValueExists = true;
-            MinValue = minValue;
+            MinValue = minValue ?? throw new ArgumentNullException(nameof(minValue));
             IsMaxValueExists = true;
-            MaxValue = maxValue;
+            MaxValue = maxValue ?? throw new ArgumentNullException(nameof(maxValue));
         }
 
-        public RangedOptionBehaviour(IOptionValue optionValue, string value, bool isMin)
+        internal RangedOptionBehaviour(IOptionValue optionValue, string value, bool isMin)
             : base(optionValue)
         {
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
             if (isMin)
             {
                 IsMinValueExists = true;

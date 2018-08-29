@@ -1,8 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
+using AutoFixture.AutoMoq;
+using AutoFixture.Idioms;
+using AutoFixture.NUnit3;
 using NUnit.Framework;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
+using SetMeta.Tests.Util;
 
 namespace SetMeta.Tests.Entities.Behaviours
 {
@@ -11,14 +16,9 @@ namespace SetMeta.Tests.Entities.Behaviours
         : AutoFixtureBase
     {
         [Test]
-        public void MultiListOptionBehaviour_WhenWePassNull_ThrowException()
+        public void MultiListOptionBehaviour_ConstructorNullChecks()
         {
-            void Delegate()
-            {
-                new MultiListOptionBehaviour(null, Fake<List<ListItem>>());
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionValue");
+            typeof(MultiListOptionBehaviour).ShouldNotAcceptNullConstructorArguments(AutoFixture, BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
         [Test]
@@ -26,7 +26,7 @@ namespace SetMeta.Tests.Entities.Behaviours
         {
             var optionValueFactory = new OptionValueFactory();
             var optionValue = optionValueFactory.Create(OptionValueType.String);
-            var list = Fake<List<ListItem>>();
+            var list = FakeMany<ListItem>();
 
             var actual = new MultiListOptionBehaviour(optionValue, list);
 

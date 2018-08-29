@@ -1,4 +1,5 @@
-﻿using AutoFixture;
+﻿using System;
+using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Kernel;
 
@@ -9,8 +10,8 @@ namespace SetMeta.Tests
         where TSut : class, TContract
         where TContract : class
     {
-        protected TContract Sut => AutoFixture.Freeze<TSut>();
-        
+        protected TContract Sut => Dep<TSut>();
+
         ////public void Chain<TParent, TChild>(Func<TParent, TChild> expression) where TParent : class where TChild : class
         ////{
         ////    Dep<TParent>().Stub(expression).Return(Dep<TChild>());

@@ -1,6 +1,8 @@
-﻿using NUnit.Framework;
+﻿using System.Reflection;
+using NUnit.Framework;
 using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
+using SetMeta.Tests.Util;
 
 namespace SetMeta.Tests.Entities.Behaviours
 {
@@ -11,26 +13,7 @@ namespace SetMeta.Tests.Entities.Behaviours
         [Test]
         public void SqlMultiListOptionBehaviour_WhenWePassNullOptionValue_ThrowException()
         {
-            void Delegate()
-            {
-                new SqlMultiListOptionBehaviour(null, "");
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionValue");
-        }
-
-        [Test]
-        public void SqlMultiListOptionBehaviour_WhenWePassNullQuery_ThrowException()
-        {
-            var optionValueFactory = new OptionValueFactory();
-            var optionValue = optionValueFactory.Create(OptionValueType.String);
-
-            void Delegate()
-            {
-                new SqlMultiListOptionBehaviour(optionValue, null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "query");
+            typeof(SqlMultiListOptionBehaviour).ShouldNotAcceptNullConstructorArguments(AutoFixture, BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
         [Test]
@@ -38,10 +21,10 @@ namespace SetMeta.Tests.Entities.Behaviours
         {
             var optionValueFactory = new OptionValueFactory();
             var optionValue = optionValueFactory.Create(OptionValueType.String);
-            var query = "Test Query";
-            var separator = "/";
-            var value = "Test Value";
-            var displayValue = "Test Display Value";
+            var query = Fake<string>();
+            var separator = Fake<string>();
+            var value = Fake<string>();
+            var displayValue = Fake<string>();
 
             var actual = new SqlMultiListOptionBehaviour(optionValue, query, true, separator, value, displayValue);
 
