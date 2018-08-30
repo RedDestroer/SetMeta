@@ -6,14 +6,14 @@ namespace SetMeta.Entities.Behaviours
     public class SqlMultiListOptionBehaviour
         : OptionBehaviour
     {
-        internal SqlMultiListOptionBehaviour(IOptionValue optionValue, string query, bool sorted = false, string separator = ";", string valueMember = "value", string displayMember = "displayValue")
+        internal SqlMultiListOptionBehaviour(IOptionValue optionValue, string query, bool sorted, string separator, string valueMember, string displayMember)
             : base(optionValue)
         {
             Sorted = sorted;
-            Separator = separator;
+            Separator = separator ?? throw new ArgumentNullException(nameof(separator));
             Query = query ?? throw new ArgumentNullException(nameof(query));
-            ValueMember = valueMember;
-            DisplayMember = displayMember;
+            ValueMember = valueMember ?? throw new ArgumentNullException(nameof(valueMember));
+            DisplayMember = displayMember ?? throw new ArgumentNullException(nameof(displayMember));
         }
 
         public bool Sorted { get; }

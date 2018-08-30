@@ -1,12 +1,13 @@
 ﻿using NUnit.Framework;
 using SetMeta.Abstract;
 using SetMeta.Impl;
+using SetMeta.Tests.Util;
 
 namespace SetMeta.Tests.Entities.Behaviours
 {
     [TestFixture]
     public class OptionBehaviourTestFixture
-        :AutoFixtureBase
+        : AutoFixtureBase
     {
         [Test]
         public void Value_WhenWePassString_SameStringShouldBeReturned()
@@ -39,15 +40,9 @@ namespace SetMeta.Tests.Entities.Behaviours
         }
 
         [Test]
-        public void OptionBehaviour_WhenWePassNull_ThrowException()
+        public void OptionBehaviour_ConstructorNullChecks()
         {
-            void Delegate()
-            {
-                // ReSharper disable once ObjectCreationAsStatement
-                new OptionBehaviourTest(null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionValue");
+            typeof(OptionBehaviourTest).ShouldNotAcceptNullConstructorArguments(AutoFixture);
         }
 
         private class OptionBehaviourTest

@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
+using SetMeta.Tests.Util;
 
 namespace SetMeta.Tests.Entities.Behaviours
 {
@@ -11,14 +13,9 @@ namespace SetMeta.Tests.Entities.Behaviours
         : AutoFixtureBase
     {
         [Test]
-        public void FlagListOptionBehaviour_WhenWePassNull_ThrowException()
+        public void FlagListOptionBehaviour_ConstructorNullChecks()
         {
-            void Delegate()
-            {
-                new FlagListOptionBehaviour(null, Fake<List<ListItem>>());
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionValue");
+            typeof(FlagListOptionBehaviour).ShouldNotAcceptNullConstructorArguments(AutoFixture, BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
         [Test]

@@ -8,6 +8,7 @@ namespace SetMeta.Entities
         {
             Options = new Dictionary<string, Option>();
             Groups = new Dictionary<string, Group>();
+            Suggestions = new Dictionary<string, IDictionary<SuggestionType, Suggestion>>();
         }
 
         public string Id { get; set; }
@@ -16,6 +17,7 @@ namespace SetMeta.Entities
         public string Description { get; set; }
         public IDictionary<string, Option> Options { get; }
         public IDictionary<string, Group> Groups { get; }
+        public IDictionary<string, IDictionary<SuggestionType, Suggestion>> Suggestions { get; }
     }
 
     internal static class GroupAttributeKeys

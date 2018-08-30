@@ -6,12 +6,12 @@ namespace SetMeta.Entities.Behaviours
     public class SqlFixedListOptionBehaviour
         : OptionBehaviour
     {
-        internal SqlFixedListOptionBehaviour(IOptionValue optionValue, string query, string valueMember = "value", string displayMember = "displayValue")
+        internal SqlFixedListOptionBehaviour(IOptionValue optionValue, string query, string valueMember, string displayMember)
             : base(optionValue)
         {
             Query = query ?? throw new ArgumentNullException(nameof(query));
-            ValueMember = valueMember;
-            DisplayMember = displayMember;
+            ValueMember = valueMember ?? throw new ArgumentNullException(nameof(valueMember));
+            DisplayMember = displayMember ?? throw new ArgumentNullException(nameof(displayMember));
         }
 
         public string Query { get; }

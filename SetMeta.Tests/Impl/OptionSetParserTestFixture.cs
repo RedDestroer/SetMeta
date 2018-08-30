@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
-using AutoFixture;
 using Moq;
 using NUnit.Framework;
 using SetMeta.Abstract;

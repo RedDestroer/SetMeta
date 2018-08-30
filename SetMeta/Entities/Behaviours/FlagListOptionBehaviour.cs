@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using SetMeta.Abstract;
 
 namespace SetMeta.Entities.Behaviours
@@ -6,12 +7,14 @@ namespace SetMeta.Entities.Behaviours
     public class FlagListOptionBehaviour
         : OptionBehaviour
     {
-        internal FlagListOptionBehaviour(IOptionValue optionValue, IEnumerable<ListItem> validItems)
+        internal FlagListOptionBehaviour(IOptionValue optionValue, IEnumerable<ListItem> listItems)
             : base(optionValue)
         {
-            ListItems = new List<ListItem>(validItems);
+            if (listItems == null) throw new ArgumentNullException(nameof(listItems));
+
+            ListItems = new List<ListItem>(listItems);
         }
 
-        public List<ListItem> ListItems { get; private set; }
+        public List<ListItem> ListItems { get; }
     }
 }
