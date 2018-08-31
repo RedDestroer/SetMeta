@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using SetMeta.Abstract;
@@ -8,6 +9,7 @@ using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
 using SetMeta.Entities.Suggestions;
 using SetMeta.Util;
+using Group = SetMeta.Entities.Group;
 
 namespace SetMeta.Impl
 {
@@ -38,13 +40,45 @@ namespace SetMeta.Impl
             if (body == null)
                 throw new InvalidOperationException("Xml body is absent.");
 
-            optionSet.Version = Version;
+            optionSet.Version = Version;            
 
             ParseConstants(body, optionSet.Constants);
+
+            body = CheckForConstantsValue(body, optionSet);
+
             ParseOptions(body, optionSet.Options);
             ParseGroups(body, optionSet.Groups);
 
             return optionSet;
+        }
+
+        private XElement CheckForConstantsValue(XElement body, OptionSet optionSet)
+        {
+            Regex regex = new Regex(@"{(Constant name=)(?<name>\w*|_*)}");
+            MatchCollection matches = regex.Matches(body.AsString());
+
+            if (matches.Count > 0)
+            {
+                foreach (Match match in matches)
+                {
+                    string name = match.Groups["name"].Value;
+                    Regex regexName = new Regex(@"^\d");
+                    MatchCollection matchesName = regexName.Matches(name);
+
+                    if (matchesName.Count == 0)
+                    {
+                        foreach (var constant in optionSet.Constants)
+                        {
+                            if (string.Equals(constant.Value.Name, name, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                body = XDocument.Parse(regex.Replace(body.AsString(), constant.Value.Value.ToString())).Root;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return body;
         }
 
         private void ParseConstants(XElement root, IDictionary<string, Constant> constants)
@@ -53,7 +87,7 @@ namespace SetMeta.Impl
                 .ForEach(element =>
                 {
                     var constant = ParseConstant(element);
-                    if (KeyIsValid(constant.Name))
+                    if (KeyIsValid(constant.Name.ToLower()))
                     {
                         if (KeyIsUnique(constant.Name, constants))
                         {
@@ -263,11 +297,6 @@ namespace SetMeta.Impl
         private bool KeyIsUnique(string id, IDictionary<string, Group> groups)
         {
             return !groups.ContainsKey(id);
-        }
-
-        private bool KeyIsUnique(string id, IDictionary<string, Constant> constants)
-        {
-            return !constants.ContainsKey(id);
         }
 
         private bool KeyIsUnique(string id, IDictionary<string, Constant> constants)
