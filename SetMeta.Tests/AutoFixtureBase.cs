@@ -4,17 +4,20 @@ using AutoFixture;
 using AutoFixture.Dsl;
 using AutoFixture.Kernel;
 using NUnit.Framework;
+using SetMeta.Tests.TestDataCreators;
 
 namespace SetMeta.Tests
 {
     public abstract class AutoFixtureBase
     {
         public IFixture AutoFixture { get; private set; }
+        public ISetMetaTestDataCreator TestDataCreator { get; private set; }
 
         [SetUp]
         public void SetUp()
         {
             AutoFixture = new Fixture();
+            TestDataCreator = new SetMetaTestDataCreator();
             SetUpInner();
         }
 

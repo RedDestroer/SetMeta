@@ -14,6 +14,7 @@ using SetMeta.Abstract;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
+using SetMeta.Tests.TestDataCreators;
 using SetMeta.Tests.Util;
 using SetMeta.Util;
 using XsdIterator;
@@ -87,19 +88,48 @@ namespace SetMeta.Tests.Impl
             });
         }
 
+
         [Test]
-        public void Parse_WithOnlyRequaredAttributes_ReturnNotNull()
+        public void Parse_ShouldReturnOptionSet_WhenDocumentIsOnlyBody()
         {
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required);
-            
+            var document = TestDataCreator.OptionSet.Build();
+
             var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-            
+
             Assert.That(actual.Options, Is.Not.Null);
             Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Options, Is.Empty);
+        }
 
-            var expected = GetExpectedOptionSet(actual.Options.First().Value);
+        ////[Test]
+        ////public void Parse_WithOnlyRequiredAttributes_ReturnNotNull()
+        ////{
+        ////    var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required);
 
-            actual.Should().BeEquivalentTo(expected);
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+        ////    Assert.That(actual.Options, Is.Not.Null);
+        ////    Assert.That(actual.Version, Is.EqualTo("1"));
+
+        ////    var expected = GetExpectedOptionSet(actual.Options.First().Value);
+
+        ////    actual.Should().BeEquivalentTo(expected);
+        ////}
+
+        [Test]
+        public void Parse_ShouldReturnExpectedOption_WhenOptionsIsSet()
+        {
+            var optionName = Fake<string>();
+            var option = TestDataCreator.Option.Build(optionName);
+            var document = TestDataCreator.OptionSet
+                .WithElement(option)
+                .Build();
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(actual.Options, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Options.Count, Is.EqualTo(1));
         }
 
         [TestCase(OptionAttributeKeys.Name, typeof(string), nameof(Option.Name))]
@@ -155,37 +185,103 @@ namespace SetMeta.Tests.Impl
             Assert.That(propertyInfo.GetValue(actual.Options.First().Value), Is.EqualTo(attributeValue));
         }
 
-        [TestCase("Test max", "Test min", null)]
-        [TestCase("Test max", null, false)]
-        [TestCase(null, "Test min", true)]
-        public void Parse_WhenItPresentRangedBehaviour_ShouldReturnCorrectBehaviour(string maxValue, string minValue, object isMin)
+        ////[TestCase("Test max", "Test min", null)]
+        ////[TestCase("Test max", null, false)]
+        ////[TestCase(null, "Test min", true)]
+        ////public void Parse_WhenItPresentRangedBehaviour_ShouldReturnCorrectBehaviour(string maxValue, string minValue, object isMin)
+        ////{
+        ////    var optionValue = _optionValueFactory.Create(OptionValueType.String);
+        ////    var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateRangedBehaviourMinMax(optionValue, minValue, maxValue, isMin));
+
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+        ////    Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<RangedOptionBehaviour>());
+
+        ////    var rangedOptionBehaviour = (RangedOptionBehaviour) actual.Options.First().Value.Behaviour;
+
+        ////    Assert.That(rangedOptionBehaviour.MaxValue, Is.EqualTo(maxValue));
+        ////    Assert.That(rangedOptionBehaviour.MinValue, Is.EqualTo(minValue));
+
+        ////    if (isMin == null)
+        ////    {
+        ////        Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.True);
+        ////        Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.True);
+        ////    }
+        ////    else if (!(bool)isMin)
+        ////    {
+        ////        Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.True);
+        ////        Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.False);
+        ////    }
+        ////    else if ((bool)isMin)
+        ////    {
+        ////        Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.False);
+        ////        Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.True);
+        ////    }
+        ////}
+
+        [Test]
+        public void Parse_ShouldReturnRangedOptionBehaviour_WhenOptionHaveRangedMinMaxElements()
         {
-            var optionValue = _optionValueFactory.Create(OptionValueType.String);
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateRangedBehaviourMinMax(optionValue, minValue, maxValue, isMin));
+            var minValue = Fake<string>();
+            var maxValue = Fake<string>();
+            var behavior = TestDataCreator.RangedMinMaxBehaviour.Build(minValue, maxValue);
+            var option = TestDataCreator.Option
+                .WithBehaviour(behavior)
+                .Build(Fake<string>());
+            var document = TestDataCreator.OptionSet
+                .WithElement(option)
+                .Build();
 
             var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var rangedOptionBehaviour = (RangedOptionBehaviour)actual.Options.First().Value.Behaviour;
 
-            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<RangedOptionBehaviour>());
-
-            var rangedOptionBehaviour = (RangedOptionBehaviour) actual.Options.First().Value.Behaviour;
-
+            Assert.That(rangedOptionBehaviour, Is.TypeOf<RangedOptionBehaviour>());
             Assert.That(rangedOptionBehaviour.MaxValue, Is.EqualTo(maxValue));
             Assert.That(rangedOptionBehaviour.MinValue, Is.EqualTo(minValue));
+            Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.True);
+            Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.True);
+        }
 
-            if (isMin == null)
-            {
-                Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.True);
-                Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.True);
-            }else if (!(bool)isMin)
-            {
-                Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.True);
-                Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.False);
-            }
-            else if ((bool)isMin)
-            {
-                Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.False);
-                Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.True);
-            }
+        [Test]
+        public void Parse_ShouldReturnRangedOptionBehaviour_WhenOptionHaveRangedMaxElements()
+        {
+            var maxValue = Fake<string>();
+            var behavior = TestDataCreator.RangedMaxBehaviour.Build(maxValue);
+            var option = TestDataCreator.Option
+                .WithBehaviour(behavior)
+                .Build(Fake<string>());
+            var document = TestDataCreator.OptionSet
+                .WithElement(option)
+                .Build();
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var rangedOptionBehaviour = (RangedOptionBehaviour)actual.Options.First().Value.Behaviour;
+
+            Assert.That(rangedOptionBehaviour, Is.TypeOf<RangedOptionBehaviour>());
+            Assert.That(rangedOptionBehaviour.MaxValue, Is.EqualTo(maxValue));
+            Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.True);
+            Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.False);
+        }
+
+        [Test]
+        public void Parse_ShouldReturnRangedOptionBehaviour_WhenOptionHaveRangedMinElements()
+        {
+            var minValue = Fake<string>();
+            var behavior = TestDataCreator.RangedMinBehaviour.Build(minValue);
+            var option = TestDataCreator.Option
+                .WithBehaviour(behavior)
+                .Build(Fake<string>());
+            var document = TestDataCreator.OptionSet
+                .WithElement(option)
+                .Build();
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var rangedOptionBehaviour = (RangedOptionBehaviour)actual.Options.First().Value.Behaviour;
+
+            Assert.That(rangedOptionBehaviour, Is.TypeOf<RangedOptionBehaviour>());
+            Assert.That(rangedOptionBehaviour.MinValue, Is.EqualTo(minValue));
+            Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.False);
+            Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.True);
         }
 
         [Test]

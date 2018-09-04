@@ -43,4 +43,34 @@ namespace SetMeta.Entities
         public const object DefaultValue = null;
         public const OptionValueType ValueType = OptionValueType.String;
     }
+
+    internal static class RangedMinMaxBehaviourKeys
+    {
+        public const string Name = "rangedMinMax";
+
+        internal static class AttrKeys
+        {
+            public const string Min = "min";
+            public const string Max = "max";
+        }
+    }
+
+    internal static class RangedMaxBehaviourKeys
+    {
+        public const string Name = "rangedMax";
+
+        internal static class AttrKeys
+        {
+            public const string Max = "max";
+        }
+    }
+    internal static class RangedMinBehaviourKeys
+    {
+        public const string Name = "rangedMin";
+
+        internal static class AttrKeys
+        {
+            public const string Min = "min";
+        }
+    }
 }

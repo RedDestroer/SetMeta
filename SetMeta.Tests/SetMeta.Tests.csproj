@@ -112,7 +112,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StaticResources.cs" />
     <Compile Include="SutBase.cs" />
-    <Compile Include="TestDataCreators\IOptionSetParserV1TestDataCreator.cs" />
+    <Compile Include="TestDataCreators\IOptionSetV1TestDataCreator.cs" />
     <Compile Include="Util\ArgumentValidationExtensions.cs" />
     <Compile Include="Util\StrictAutoMoqCustomization.cs" />
     <Compile Include="Util\OptionSetV1XmlSchemaProcessor.cs" />
