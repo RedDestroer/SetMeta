@@ -295,6 +295,19 @@ namespace SetMeta.Impl
             var optionValue = _optionValueFactory.Create(option.ValueType);
             option.Behaviour = CreateBehaviour(root, optionValue);
 
+            var defaultValueElement = root.Elements().FirstOrDefault(o => o.Name == OptionAttributeKeys.DefaultValue);
+            if (defaultValueElement != null)
+            {
+                if (root.IsAttributeExists(OptionAttributeKeys.DefaultValue))
+                    _optionSetValidator.AddError($"Option {option.Name} has two defaultValue's.", root);
+
+                var dataElement = defaultValueElement.Elements().First();
+                if (dataElement.NodeType != XmlNodeType.CDATA)
+                    _optionSetValidator.AddError("DefaultValue element doesn't contains CData.", dataElement);
+
+                option.DefaultValue = dataElement.Value.Trim();
+            }
+
             return option;
         }
 
