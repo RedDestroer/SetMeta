@@ -8,7 +8,7 @@
     <!--Настройка является диапазонной-->
     <!--min - минимальное значение настройки. Атрибут может отсутствовать, тогда полагается, что минимальное значение равно default(T)-->
     <!--max - максимальное значение настройки. Атрибут может отсутствовать, тогда полагается, что максимальное значение равно default(T)-->
-    <rangedMinMax min="" max=""/>
+    <rangedMinMax min="{Constant name=min}" max="{Constant name=max}"/>
 
     <!--Настройка является диапазонной, у которой нет ограничения снизу-->
     <!--max - максимальное значение настройки. Атрибут может отсутствовать, тогда полагается, что максимальное значение равно default(T)-->
@@ -73,7 +73,7 @@
       <suggestion name="name6"/>
     </option>
     <!--Может быть 0..*-->
-    <group name="name2" displayName="displayName2" description="description2">
+    <group name="name2" displayName="displayName2" description="{Constant name=name1}, {Constant name=name2}">
       <option name="name4"/>
       <option name="name5"/>
     </group>
@@ -81,6 +81,8 @@
 
   <!--Может быть 0..*-->
   <constant name="name" value="value" valueType="valueType1"/>
+  <constant name="max" value="255" valueType="valueType1"/>
+  <constant name="min" value="5" valueType="valueType1"/>
 
   <!--Может быть 0..*-->
   <suggestion name="name6">
