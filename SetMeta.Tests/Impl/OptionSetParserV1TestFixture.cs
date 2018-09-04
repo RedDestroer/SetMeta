@@ -13,6 +13,7 @@ using NUnit.Framework;
 using SetMeta.Abstract;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
+using SetMeta.Entities.Suggestions;
 using SetMeta.Impl;
 using SetMeta.Tests.Util;
 using SetMeta.Util;
@@ -503,7 +504,11 @@ namespace SetMeta.Tests.Impl
             var groupName = Fake<string>();
             var optionName = Fake<string>();
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMaxLengthSuggestion(max), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, 
+                groupName, 
+                CreateMaxLengthSuggestion(max.ToString()), 
+                GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, 
+                    optionName));
 
             var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
@@ -621,7 +626,47 @@ namespace SetMeta.Tests.Impl
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
         }
-        
+
+        [Test]
+        public void Parse_WhenItPresentConstantWithSuggestionWithThatConstant_ShouldReturnCorrectSuggestion()
+        {
+            var constantName = "Test";
+            var constantValue = Fake<UInt16>();
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestionAndOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, 
+                CreateMaxLengthSuggestion("{Constant name=Test}"), 
+                GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName), 
+                GenerateConstantWithValue(constantName, constantValue, "UInt16"));
+
+            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+
+            Assert.That(((MaxLengthSuggestion)actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Values.First()).Value, Is.EqualTo(constantValue));
+        }
+
+        [Test]
+        public void Parse_WhenItPresentSuggestionAndThereIsNoConstantWithRightName_Throws()
+        {
+            var constantName = "Test2";
+            var constantValue = Fake<UInt16>();
+            var groupName = Fake<string>();
+            var optionName = Fake<string>();
+            var suggestionValue = "{Constant name=Test}";
+
+            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestionAndOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName,
+                CreateMaxLengthSuggestion(suggestionValue),
+                GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName),
+                GenerateConstantWithValue(constantName, constantValue, "UInt16"));
+
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+            {
+                Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            });
+
+            Assert.That(ex.Message, Is.EqualTo($"Невозможно преобразовать значение '{suggestionValue}' к типу '{typeof(UInt16).FullName}'."));
+        }
+
         private List<ListItem> FakeManyListItems(IOptionValue optionValue)
         {
             return FakeMany<ListItem>(o => o.FromFactory(() => new ListItem(Fake(optionValue.ValueType), Fake<string>())))
@@ -661,6 +706,16 @@ namespace SetMeta.Tests.Impl
             document.Save(stream);
             stream.Position = 0;
             return new XmlTextReader(stream);
+        }
+
+        private XDocument GenerateDocumentWithOneGroupWithOptionAndSuggestionAndOneConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestion, XElement option, XElement constant)
+        {
+            return GenerateDocument(GenerateOneGroupWithOptionAndSuggestionAndOneConstantFunc(expectedAttribute, name, value, suggestion, option, constant));
+        }
+
+        private Func<IEnumerable<XElement>> GenerateOneGroupWithOptionAndSuggestionAndOneConstantFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestion, XElement option, XElement constant)
+        {
+            return () => new[] { constant, GenerateGroup(expectedAttribute, name, value, suggestion, option) };
         }
 
         private XDocument GenerateDocumentWithOneGroupWithOptionAndTwoSameSuggestions(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestionOne, XElement suggestionTwo, XElement option)
@@ -751,6 +806,11 @@ namespace SetMeta.Tests.Impl
         private Func<IEnumerable<XElement>> GenerateOptionFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
         {
             return () => new[] { GenerateOption(expectedAttribute, name, value, behaviourFunc) };
+        }
+
+        private XElement GenerateConstantWithValue( object nameValue, object value, object valueTypeValue)
+        {
+            return new XElement(Keys.Constant, new XAttribute("name", nameValue), new XAttribute("value", value), new XAttribute("valueType", valueTypeValue));        
         }
 
         private XElement GenerateConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
@@ -941,7 +1001,7 @@ namespace SetMeta.Tests.Impl
                 new XAttribute("displayValueFieldName", displayValue));
         }
 
-        private XElement CreateMaxLengthSuggestion(ushort max)
+        private XElement CreateMaxLengthSuggestion(string max)
         {
             return new XElement("suggestion",new XElement("maxLength", new XAttribute("value", max)));
         }
