@@ -64,6 +64,7 @@ namespace SetMeta.Entities
             public const string Max = "max";
         }
     }
+
     internal static class RangedMinBehaviourKeys
     {
         public const string Name = "rangedMin";
@@ -71,6 +72,76 @@ namespace SetMeta.Entities
         internal static class AttrKeys
         {
             public const string Min = "min";
+        }
+    }
+
+    internal static class FixedListBehaviourKeys
+    {
+        public const string Name = "fixedList";
+    }
+
+    internal static class ListItemKeys
+    {
+        public const string Name = "listItem";
+
+        internal static class AttrKeys
+        {
+            public const string Value = "value";
+            public const string DisplayValue = "displayValue";
+        }
+    }
+
+    internal static class SqlFixedListBehaviourKeys
+    {
+        public const string Name = "sqlFixedList";
+
+        internal static class AttrKeys
+        {
+            public const string Query = "query";
+            public const string ValueFieldName = "valueFieldName";
+            public const string DisplayValueFieldName = "displayValueFieldName";
+        }
+    }
+
+    internal static class FlagListBehaviourKeys
+    {
+        public const string Name = "flagList";
+    }
+
+    internal static class SqlFlagListBehaviourKeys
+    {
+        public const string Name = "sqlFlagList";
+
+        internal static class AttrKeys
+        {
+            public const string Query = "query";
+            public const string ValueFieldName = "valueFieldName";
+            public const string DisplayValueFieldName = "displayValueFieldName";
+        }
+    }
+
+    internal static class MultiListBehaviourKeys
+    {
+        public const string Name = "multiList";
+
+        internal static class AttrKeys
+        {
+            public const string Sorted = "sorted";
+            public const string Separator = "separator";
+        }
+    }
+
+    internal static class SqlMultiListBehaviourKeys
+    {
+        public const string Name = "sqlMultiList";
+
+        internal static class AttrKeys
+        {
+            public const string Sorted = "sorted";
+            public const string Separator = "separator";
+            public const string Query = "query";
+            public const string ValueFieldName = "valueFieldName";
+            public const string DisplayValueFieldName = "displayValueFieldName";
         }
     }
 }
