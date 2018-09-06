@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using SetMeta.Entities;
+using OptionElement = SetMeta.Entities.OptionSetElement.OptionElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
@@ -10,7 +10,7 @@ namespace SetMeta.Tests.TestDataCreators
         private string _description;
         private string _defaultValue;
         private bool _asAttribute;
-        private OptionValueType _valueType;
+        private OptionValueType? _valueType;
         private XElement _behaviourElement;
         private XElement _element;
         private XAttribute _attribute;
@@ -67,27 +67,27 @@ namespace SetMeta.Tests.TestDataCreators
 
         public XElement Build(string name)
         {
-            var element = new XElement(Keys.Option, new XAttribute(OptionAttributeKeys.Name, name));
+            var element = new XElement(OptionElement.ElementName, new XAttribute(OptionElement.Attrs.Name, name));
 
             if (_attribute != null)
                 element.Add(_attribute);
 
             if (_displayName != null)
-                element.Add(new XAttribute(OptionAttributeKeys.DisplayName, _displayName));
+                element.Add(new XAttribute(OptionElement.Attrs.DisplayName, _displayName));
             if (_description != null)
-                element.Add(new XAttribute(OptionAttributeKeys.Description, _description));
-
-            element.Add(new XAttribute(OptionAttributeKeys.ValueType, _valueType));
+                element.Add(new XAttribute(OptionElement.Attrs.Description, _description));
+            if (_valueType != null)
+                element.Add(new XAttribute(OptionElement.Attrs.ValueType, _valueType.Value));
 
             if (_defaultValue != null)
             {
                 if (_asAttribute)
                 {
-                    element.Add(new XAttribute(OptionAttributeKeys.DisplayName, _defaultValue));
+                    element.Add(new XAttribute(OptionElement.Attrs.DefaultValue, _defaultValue));
                 }
                 else
                 {
-                    var defaultValueElement = new XElement(OptionAttributeKeys.DisplayName, new XCData(_defaultValue));
+                    var defaultValueElement = new XElement(OptionElement.Attrs.DefaultValue, new XCData(_defaultValue));
                     element.Add(defaultValueElement);
                 }
             }

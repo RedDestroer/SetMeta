@@ -6,7 +6,7 @@ namespace SetMeta.Tests.TestDataCreators
     {
         IOptionTestDataCreator WithDisplayName(string displayName);
         IOptionTestDataCreator WithDescription(string description);
-        IOptionTestDataCreator WithDefaultValue(string defaultValue, bool asElement = false);
+        IOptionTestDataCreator WithDefaultValue(string defaultValue, bool asElement = true);
         IOptionTestDataCreator WithValueType(OptionValueType valueType);
         IOptionTestDataCreator WithBehaviour(XElement behaviourElement);
         IOptionTestDataCreator WithAttribute(XAttribute attribute);

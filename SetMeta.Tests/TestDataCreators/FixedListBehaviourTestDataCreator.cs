@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Linq;
-using SetMeta.Entities;
+using FixedListElement = SetMeta.Entities.OptionSetElement.OptionElement.FixedListElement;
+using ListItemElement = SetMeta.Entities.OptionSetElement.OptionElement.FixedListElement.ListItemElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
@@ -18,13 +19,13 @@ namespace SetMeta.Tests.TestDataCreators
 
         public XElement Build()
         {
-            var body = new XElement(FixedListBehaviourKeys.Name);
+            var body = new XElement(FixedListElement.ElementName);
 
             foreach (var pair in _listItems)
             {
-                var listItem = new XElement(ListItemKeys.Name, new XAttribute(ListItemKeys.AttrKeys.Value, pair.Key));
+                var listItem = new XElement(ListItemElement.ElementName, new XAttribute(ListItemElement.Attrs.Value, pair.Key));
                 if (pair.Value != null)
-                    listItem.Add(new XAttribute(ListItemKeys.AttrKeys.DisplayValue, pair.Value));
+                    listItem.Add(new XAttribute(ListItemElement.Attrs.DisplayValue, pair.Value));
 
                 body.Add(listItem);
             }

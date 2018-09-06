@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Linq;
-using SetMeta.Entities;
+using MultiListElement = SetMeta.Entities.OptionSetElement.OptionElement.MultiListElement;
+using ListItemElement = SetMeta.Entities.OptionSetElement.OptionElement.MultiListElement.ListItemElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
@@ -34,18 +35,18 @@ namespace SetMeta.Tests.TestDataCreators
 
         public XElement Build()
         {
-            var body = new XElement(MultiListBehaviourKeys.Name);
+            var body = new XElement(MultiListElement.ElementName);
 
             if (_sorted != null)
-                body.Add(new XAttribute(MultiListBehaviourKeys.AttrKeys.Sorted, _sorted));
+                body.Add(new XAttribute(MultiListElement.Attrs.Sorted, _sorted));
             if (_separator != null)
-                body.Add(new XAttribute(MultiListBehaviourKeys.AttrKeys.Separator, _separator));
+                body.Add(new XAttribute(MultiListElement.Attrs.Separator, _separator));
 
             foreach (var pair in _listItems)
             {
-                var listItem = new XElement(ListItemKeys.Name, new XAttribute(ListItemKeys.AttrKeys.Value, pair.Key));
+                var listItem = new XElement(ListItemElement.ElementName, new XAttribute(ListItemElement.Attrs.Value, pair.Key));
                 if (pair.Value != null)
-                    listItem.Add(new XAttribute(ListItemKeys.AttrKeys.DisplayValue, pair.Value));
+                    listItem.Add(new XAttribute(ListItemElement.Attrs.DisplayValue, pair.Value));
 
                 body.Add(listItem);
             }

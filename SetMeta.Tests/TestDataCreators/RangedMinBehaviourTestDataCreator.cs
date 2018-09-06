@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using SetMeta.Entities;
+using RangedMinElement = SetMeta.Entities.OptionSetElement.OptionElement.RangedMinElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
@@ -9,8 +9,8 @@ namespace SetMeta.Tests.TestDataCreators
         public XElement Build(string min)
         {
             return new XElement(
-                RangedMinBehaviourKeys.Name,
-                new XAttribute(RangedMinBehaviourKeys.AttrKeys.Min, min));
+                RangedMinElement.ElementName,
+                new XAttribute(RangedMinElement.Attrs.Min, min));
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using SetMeta.Entities;
+using SqlMultiListElement = SetMeta.Entities.OptionSetElement.OptionElement.SqlMultiListElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
@@ -41,16 +41,16 @@ namespace SetMeta.Tests.TestDataCreators
 
         public XElement Build(string query)
         {
-            var body = new XElement(SqlMultiListBehaviourKeys.Name, new XAttribute(SqlMultiListBehaviourKeys.AttrKeys.Query, query));
+            var body = new XElement(SqlMultiListElement.ElementName, new XAttribute(SqlMultiListElement.Attrs.Query, query));
 
             if (_sorted != null)
-                body.Add(new XAttribute(SqlMultiListBehaviourKeys.AttrKeys.Sorted, _sorted));
+                body.Add(new XAttribute(SqlMultiListElement.Attrs.Sorted, _sorted));
             if (_separator != null)
-                body.Add(new XAttribute(SqlMultiListBehaviourKeys.AttrKeys.Separator, _separator));
+                body.Add(new XAttribute(SqlMultiListElement.Attrs.Separator, _separator));
             if (_valueFieldName != null)
-                body.Add(new XAttribute(SqlMultiListBehaviourKeys.AttrKeys.ValueFieldName, _valueFieldName));
+                body.Add(new XAttribute(SqlMultiListElement.Attrs.ValueFieldName, _valueFieldName));
             if (_displayValueFieldName != null)
-                body.Add(new XAttribute(SqlMultiListBehaviourKeys.AttrKeys.DisplayValueFieldName, _displayValueFieldName));
+                body.Add(new XAttribute(SqlMultiListElement.Attrs.DisplayValueFieldName, _displayValueFieldName));
 
             return body;
         }

@@ -24,14 +24,14 @@ namespace SetMeta.Tests.TestDataCreators
 
         public XDocument Build()
         {
-            var body = new XElement(Keys.OptionSet,
-                new XAttribute(OptionSetAttributeKeys.Version, "1"));
+            var body = new XElement(OptionSetElement.ElementName,
+                new XAttribute(OptionSetElement.Attrs.Version, "1"));
             ////new XAttribute("xmlns", "http://tempuri.org")
             ////new XAttribute("xmlns:xsi", "http://tempuri.org/2018/Option/XMLSchema-instance"),
             ////new XAttribute("xsi:schemaLocation", "http://tempuri.org OptionSetV1.xsd"));
 
             // ReSharper disable once RedundantTypeArgumentsOfMethod
-            _elements.ForEach<XElement>(element => body.Add((object) element));
+            _elements.ForEach<XElement>(element => body.Add(element));
 
             var document = new XDocument();
             document.Add(body);

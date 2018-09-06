@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using SetMeta.Entities;
+using SqlFixedListElement = SetMeta.Entities.OptionSetElement.OptionElement.SqlFixedListElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
@@ -25,12 +25,12 @@ namespace SetMeta.Tests.TestDataCreators
 
         public XElement Build(string query)
         {
-            var body = new XElement(SqlFixedListBehaviourKeys.Name, new XAttribute(SqlFixedListBehaviourKeys.AttrKeys.Query, query));
+            var body = new XElement(SqlFixedListElement.ElementName, new XAttribute(SqlFixedListElement.Attrs.Query, query));
 
             if (_valueFieldName != null)
-                body.Add(new XAttribute(SqlFixedListBehaviourKeys.AttrKeys.ValueFieldName, _valueFieldName));
+                body.Add(new XAttribute(SqlFixedListElement.Attrs.ValueFieldName, _valueFieldName));
             if (_displayValueFieldName != null)
-                body.Add(new XAttribute(SqlFixedListBehaviourKeys.AttrKeys.DisplayValueFieldName, _displayValueFieldName));
+                body.Add(new XAttribute(SqlFixedListElement.Attrs.DisplayValueFieldName, _displayValueFieldName));
 
             return body;
         }

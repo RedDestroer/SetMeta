@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using SetMeta.Entities;
+using SqlFlagListElement = SetMeta.Entities.OptionSetElement.OptionElement.SqlFlagListElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
@@ -25,12 +25,12 @@ namespace SetMeta.Tests.TestDataCreators
 
         public XElement Build(string query)
         {
-            var body = new XElement(SqlFlagListBehaviourKeys.Name, new XAttribute(SqlFlagListBehaviourKeys.AttrKeys.Query, query));
+            var body = new XElement(SqlFlagListElement.ElementName, new XAttribute(SqlFlagListElement.Attrs.Query, query));
 
             if (_valueFieldName != null)
-                body.Add(new XAttribute(SqlFlagListBehaviourKeys.AttrKeys.ValueFieldName, _valueFieldName));
+                body.Add(new XAttribute(SqlFlagListElement.Attrs.ValueFieldName, _valueFieldName));
             if (_displayValueFieldName != null)
-                body.Add(new XAttribute(SqlFlagListBehaviourKeys.AttrKeys.DisplayValueFieldName, _displayValueFieldName));
+                body.Add(new XAttribute(SqlFlagListElement.Attrs.DisplayValueFieldName, _displayValueFieldName));
 
             return body;
         }

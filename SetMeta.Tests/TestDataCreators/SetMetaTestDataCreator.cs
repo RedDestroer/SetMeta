@@ -16,6 +16,11 @@
             SqlFlagListBehaviour = new SqlFlagListBehaviourTestDataCreator();
             MultiListBehaviour = new MultiListBehaviourTestDataCreator();
             SqlMultiListBehaviour = new SqlMultiListBehaviourTestDataCreator();
+            Group = new GroupTestDataCreator();
+            GroupOption = new GroupOptionTestDataCreator();
+            OptionSuggestion = new OptionSuggestionTestDataCreator();
+            Constant = new ConstantTestDataCreator();
+            Suggestion = new SuggestionTestDataCreator();
         }
 
         public IOptionSetV1TestDataCreator OptionSet { get; }
@@ -29,5 +34,10 @@
         public ISqlFlagListBehaviourTestDataCreator SqlFlagListBehaviour { get; }
         public IMultiListBehaviourTestDataCreator MultiListBehaviour { get; }
         public ISqlMultiListBehaviourTestDataCreator SqlMultiListBehaviour { get; }
+        public IGroupTestDataCreator Group { get; }
+        public IGroupOptionTestDataCreator GroupOption { get; }
+        public IOptionSuggestionTestDataCreator OptionSuggestion { get; }
+        public IConstantTestDataCreator Constant { get; }
+        public ISuggestionTestDataCreator Suggestion { get; }
     }
 }

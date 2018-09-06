@@ -13,5 +13,10 @@
         ISqlFlagListBehaviourTestDataCreator SqlFlagListBehaviour { get; }
         IMultiListBehaviourTestDataCreator MultiListBehaviour { get; }
         ISqlMultiListBehaviourTestDataCreator SqlMultiListBehaviour { get; }
+        IGroupTestDataCreator Group { get; }
+        IGroupOptionTestDataCreator GroupOption { get; }
+        IOptionSuggestionTestDataCreator OptionSuggestion { get; }
+        IConstantTestDataCreator Constant { get; }
+        ISuggestionTestDataCreator Suggestion { get; }
     }
 }

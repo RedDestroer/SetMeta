@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using SetMeta.Entities;
+using RangedMinMaxElement = SetMeta.Entities.OptionSetElement.OptionElement.RangedMinMaxElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
@@ -9,9 +9,9 @@ namespace SetMeta.Tests.TestDataCreators
         public XElement Build(string min, string max)
         {
             return new XElement(
-                RangedMinMaxBehaviourKeys.Name, 
-                new XAttribute(RangedMinMaxBehaviourKeys.AttrKeys.Min, min),
-                new XAttribute(RangedMinMaxBehaviourKeys.AttrKeys.Max, max));
+                RangedMinMaxElement.ElementName, 
+                new XAttribute(RangedMinMaxElement.Attrs.Min, min),
+                new XAttribute(RangedMinMaxElement.Attrs.Max, max));
         }
     }
 }
