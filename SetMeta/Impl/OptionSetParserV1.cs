@@ -52,6 +52,31 @@ namespace SetMeta.Impl
             return optionSet;
         }
 
+        private string CheckName(XElement root, string name)
+        {
+            var value = TryGetMandatoryAttributeValue<string>(root, name);
+
+            Regex regex = new Regex(@"(^\w+|_+)");
+            MatchCollection matches = regex.Matches(value);
+
+            if (matches.Count > 0)
+            {
+                Regex regexName = new Regex(@"(^\d+)");
+                MatchCollection matchesName = regexName.Matches(value);
+
+                if (matchesName.Count > 0)
+                {
+                    _optionSetValidator.AddError($"Name {value} isn`t valid.", root);
+                }              
+            }
+            else
+            {
+                _optionSetValidator.AddError($"Name {value} isn`t valid.", root);
+            }
+
+            return value;
+        }
+
         private T ReplaceConstants<T>(XElement root, string attributeName)
         {
             var value = root.GetAttributeValue<string>(attributeName);
@@ -139,7 +164,7 @@ namespace SetMeta.Impl
         {
             var group = new Group();
 
-            group.Name = TryGetMandatoryAttributeValue<string>(root, GroupAttributeKeys.Name);
+            group.Name = CheckName(root, GroupAttributeKeys.Name);
             group.Id = CreateId(group.Name);
             group.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(GroupAttributeKeys.DisplayName, GroupAttributeDefaults.DisplayName));
             group.Description = ReplaceConstants(root.TryGetAttributeValue<string>(GroupAttributeKeys.Description, GroupAttributeDefaults.Description));
@@ -264,7 +289,7 @@ namespace SetMeta.Impl
         {
             var constant = new Constant();
 
-            constant.Name = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.Name);
+            constant.Name = CheckName(root, ConstantAttributeKeys.Name);
             constant.ValueType = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.ValueType);
             constant.Value = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.Value);
 
@@ -310,11 +335,6 @@ namespace SetMeta.Impl
             return !constants.ContainsKey(id);
         }
 
-        private bool KeyIsUnique(string id, IDictionary<string, Constant> constants)
-        {
-            return !constants.ContainsKey(id);
-        }
-
         private bool KeyIsValid(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -331,7 +351,7 @@ namespace SetMeta.Impl
         {
             var option = new Option();
 
-            option.Name = TryGetMandatoryAttributeValue<string>(root, OptionAttributeKeys.Name);
+            option.Name = CheckName(root, OptionAttributeKeys.Name);
             option.Id = CreateId(option.Name);
             option.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(OptionAttributeKeys.DisplayName, OptionAttributeDefaults.DisplayName));
             option.Description = ReplaceConstants(root.TryGetAttributeValue<string>(OptionAttributeKeys.Description, OptionAttributeDefaults.Description));

@@ -829,22 +829,6 @@ namespace SetMeta.Tests.Impl
             return constant;
         }
 
-        private XElement GenerateConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
-        {
-            var constant = new XElement(Keys.Constant);
-
-            foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
-            {
-                AddAttribute(constant,
-                    optionAttribute,
-                    name == null || name != optionAttribute.Name
-                        ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
-                        : value);
-            }
-
-            return constant;
-        }
-
         private XElement GenerateOption(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
         {
             var option = new XElement(Keys.Option);
