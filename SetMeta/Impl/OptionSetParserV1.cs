@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using SetMeta.Abstract;
@@ -8,6 +9,7 @@ using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
 using SetMeta.Entities.Suggestions;
 using SetMeta.Util;
+using Group = SetMeta.Entities.Group;
 
 namespace SetMeta.Impl
 {
@@ -17,6 +19,7 @@ namespace SetMeta.Impl
         private readonly IOptionValueFactory _optionValueFactory;
 
         private IOptionSetValidator _optionSetValidator;
+        private IDictionary<string, Constant> _constants;
 
         public OptionSetParserV1(IOptionValueFactory optionValueFactory)
         {
@@ -38,13 +41,50 @@ namespace SetMeta.Impl
             if (body == null)
                 throw new InvalidOperationException("Xml body is absent.");
 
-            optionSet.Version = Version;
+            optionSet.Version = Version;            
 
             ParseConstants(body, optionSet.Constants);
+            _constants = optionSet.Constants;
+
             ParseOptions(body, optionSet.Options);
             ParseGroups(body, optionSet.Groups);
 
             return optionSet;
+        }
+
+        private T ReplaceConstants<T>(XElement root, string attributeName)
+        {
+            var value = root.GetAttributeValue<string>(attributeName);
+            value = ReplaceConstants(value);
+
+            return DataConversion.Convert<T>(value);
+        }
+
+        private string ReplaceConstants(string value)
+        {
+            if (value != null)
+            {
+                Regex regex = new Regex(@"{(Constant name=)(?<name>\w*|_*)}");
+                MatchCollection matches = regex.Matches(value);
+
+                if (matches.Count > 0)
+                {
+                    foreach (Match match in matches)
+                    {
+                        string name = match.Groups["name"].Value;
+
+                        foreach (var constant in _constants)
+                        {
+                            if (string.Equals(constant.Value.Name, name, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                value = regex.Replace(value, Convert.ToString(constant.Value.Value));
+                            }
+                        }
+                    }
+                }
+            }
+
+            return value;
         }
 
         private void ParseConstants(XElement root, IDictionary<string, Constant> constants)
@@ -53,7 +93,7 @@ namespace SetMeta.Impl
                 .ForEach(element =>
                 {
                     var constant = ParseConstant(element);
-                    if (KeyIsValid(constant.Name))
+                    if (KeyIsValid(constant.Name.ToLower()))
                     {
                         if (KeyIsUnique(constant.Name, constants))
                         {
@@ -101,8 +141,8 @@ namespace SetMeta.Impl
 
             group.Name = TryGetMandatoryAttributeValue<string>(root, GroupAttributeKeys.Name);
             group.Id = CreateId(group.Name);
-            group.DisplayName = root.TryGetAttributeValue(GroupAttributeKeys.DisplayName, GroupAttributeDefaults.DisplayName);
-            group.Description = root.TryGetAttributeValue(GroupAttributeKeys.Description, GroupAttributeDefaults.Description);
+            group.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(GroupAttributeKeys.DisplayName, GroupAttributeDefaults.DisplayName));
+            group.Description = ReplaceConstants(root.TryGetAttributeValue<string>(GroupAttributeKeys.Description, GroupAttributeDefaults.Description));
             ParseOptions(root, group.Options);
             ParseGroups(root, group.Groups);
             ParseSuggestions(root, group.Suggestions);
@@ -171,25 +211,25 @@ namespace SetMeta.Impl
             {
                 case "maxLength":
                 {
-                    UInt16 max = root.GetAttributeValue<UInt16>("value");
+                    ushort max = ReplaceConstants<ushort>(root, "value");
                     suggestion = new MaxLengthSuggestion {Value = max};
                 }
                     break;
                 case "maxLines":
                 {
-                    byte max = root.GetAttributeValue<byte>("value");
+                    byte max = ReplaceConstants<byte>(root, "value");
                     suggestion = new MaxLinesSuggestion {Value = max};
                 }
                     break;
                 case "minLength":
                 {
-                    UInt16 min = root.GetAttributeValue<UInt16>("value");
+                    ushort min = ReplaceConstants<ushort>(root, "value");
                     suggestion = new MinLengthSuggestion { Value = min };
                 }
                     break;
                 case "minLines":
                 {
-                    byte min = root.GetAttributeValue<byte>("value");
+                    byte min = ReplaceConstants<byte>(root, "value");
                     suggestion = new MinLinesSuggestion { Value = min };
                 }
                     break;
@@ -210,8 +250,8 @@ namespace SetMeta.Impl
                     break;
                 case "regex":
                 {
-                    string value = root.GetAttributeValue<string>("value");
-                    string validation = root.TryGetAttributeValue<string>("validation", null);
+                    string value = ReplaceConstants<string>(root, "value");
+                    string validation = ReplaceConstants(root.TryGetAttributeValue<string>("validation", null));
                     suggestion = new RegexSuggestion { Value = value, Validation = validation};
                 }
                     break;
@@ -293,12 +333,25 @@ namespace SetMeta.Impl
 
             option.Name = TryGetMandatoryAttributeValue<string>(root, OptionAttributeKeys.Name);
             option.Id = CreateId(option.Name);
-            option.DisplayName = root.TryGetAttributeValue(OptionAttributeKeys.DisplayName, OptionAttributeDefaults.DisplayName);
-            option.Description = root.TryGetAttributeValue(OptionAttributeKeys.Description, OptionAttributeDefaults.Description);
-            option.DefaultValue = root.TryGetAttributeValue(OptionAttributeKeys.DefaultValue, OptionAttributeDefaults.DefaultValue);
+            option.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(OptionAttributeKeys.DisplayName, OptionAttributeDefaults.DisplayName));
+            option.Description = ReplaceConstants(root.TryGetAttributeValue<string>(OptionAttributeKeys.Description, OptionAttributeDefaults.Description));
+            option.DefaultValue = ReplaceConstants(root.TryGetAttributeValue<string>(OptionAttributeKeys.DefaultValue, null));
             option.ValueType = root.TryGetAttributeValue(OptionAttributeKeys.ValueType, OptionAttributeDefaults.ValueType);
             var optionValue = _optionValueFactory.Create(option.ValueType);
             option.Behaviour = CreateBehaviour(root, optionValue);
+
+            var defaultValueElement = root.Elements().FirstOrDefault(o => o.Name == OptionAttributeKeys.DefaultValue);
+            if (defaultValueElement != null)
+            {
+                if (root.IsAttributeExists(OptionAttributeKeys.DefaultValue))
+                    _optionSetValidator.AddError($"Option {option.Name} has two defaultValue's.", root);
+
+                var dataElement = defaultValueElement.Elements().First();
+                if (dataElement.NodeType != XmlNodeType.CDATA)
+                    _optionSetValidator.AddError("DefaultValue element doesn't contains CData.", dataElement);
+
+                option.DefaultValue = dataElement.Value.Trim();
+            }
 
             return option;
         }
@@ -335,20 +388,20 @@ namespace SetMeta.Impl
             {
                 case "rangedMinMax":
                 {
-                    string min = root.GetAttributeValue<string>("min");
-                    string max = root.GetAttributeValue<string>("max");
+                    string min = ReplaceConstants<string>(root, "min");
+                    string max = ReplaceConstants<string>(root, "max");
                     optionBehaviour = new RangedOptionBehaviour(optionValue, min, max);
                 }
                     break;
                 case "rangedMax":
                 {
-                    string max = root.GetAttributeValue<string>("max");
+                    string max = ReplaceConstants<string>(root, "max");
                     optionBehaviour = new RangedOptionBehaviour(optionValue, max, false);
                 }
                     break;
                 case "rangedMin":
                 {
-                    string min = root.GetAttributeValue<string>("min");
+                    string min = ReplaceConstants<string>(root, "min");
                     optionBehaviour = new RangedOptionBehaviour(optionValue, min, true);
                 }
                     break;
@@ -360,34 +413,34 @@ namespace SetMeta.Impl
                     break;
                 case "multiList":
                 {
-                    bool sorted = root.GetAttributeValue<bool>("sorted");
-                    string separator = root.GetAttributeValue<string>("separator");
+                    bool sorted = ReplaceConstants<bool>(root, "sorted");
+                    string separator = ReplaceConstants<string>(root, "separator");
                     optionBehaviour = CreateMultiListBehaviour(root, optionValue, sorted, separator);
                 }
                     break;
                 case "sqlFixedList":
                 {
-                    string query = root.GetAttributeValue<string>("query");
-                    string valueFieldName = root.TryGetAttributeValue("valueFieldName", "value");
-                    string displayValueFieldName = root.TryGetAttributeValue("displayValueFieldName", "displayValue");
+                    string query = ReplaceConstants<string>(root, "query");
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("valueFieldName", "value"));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("displayValueFieldName", "displayValue"));
                     optionBehaviour = new SqlFixedListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
                 }
                     break;
                 case "sqlFlagList":
                 {
-                    string query = root.GetAttributeValue<string>("query");
-                    string valueFieldName = root.TryGetAttributeValue("valueFieldName", "value");
-                    string displayValueFieldName = root.TryGetAttributeValue("displayValueFieldName", "displayValue");
+                    string query = ReplaceConstants<string>(root, "query");
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("valueFieldName", "value"));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("displayValueFieldName", "displayValue"));
                     optionBehaviour = new SqlFlagListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
                 }
                     break;
                 case "sqlMultiList":
                 {
-                    string query = root.GetAttributeValue<string>("query");
-                    bool sorted = root.TryGetAttributeValue("sorted", false);
-                    string separator = root.TryGetAttributeValue("separator", ";");
-                    string valueFieldName = root.TryGetAttributeValue("valueFieldName", "value");
-                    string displayValueFieldName = root.TryGetAttributeValue("displayValueFieldName", "displayValue");
+                    string query = ReplaceConstants<string>(root, "query");
+                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue<bool>("sorted", false).ToString()));
+                    string separator = ReplaceConstants(root.TryGetAttributeValue<string>("separator", ";"));
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("valueFieldName", "value"));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("displayValueFieldName", "displayValue"));
                     optionBehaviour = new SqlMultiListOptionBehaviour(optionValue, query, sorted, separator, valueFieldName, displayValueFieldName);
                 }
                     break;
