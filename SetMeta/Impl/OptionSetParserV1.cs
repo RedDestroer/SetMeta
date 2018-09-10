@@ -56,6 +56,31 @@ namespace SetMeta.Impl
             return optionSet;
         }
 
+        private string CheckName(XElement root, string name)
+        {
+            var value = TryGetMandatoryAttributeValue<string>(root, name);
+
+            Regex regex = new Regex(@"(^\w+|_+)");
+            MatchCollection matches = regex.Matches(value);
+
+            if (matches.Count > 0)
+            {
+                Regex regexName = new Regex(@"(^\d+)");
+                MatchCollection matchesName = regexName.Matches(value);
+
+                if (matchesName.Count > 0)
+                {
+                    _optionSetValidator.AddError($"Name {value} isn`t valid.", root);
+                }              
+            }
+            else
+            {
+                _optionSetValidator.AddError($"Name {value} isn`t valid.", root);
+            }
+
+            return value;
+        }
+
         private T ReplaceConstants<T>(XElement root, string attributeName)
         {
             var value = root.GetAttributeValue<string>(attributeName);
@@ -143,7 +168,7 @@ namespace SetMeta.Impl
         {
             var group = new Group();
 
-            group.Name = TryGetMandatoryAttributeValue<string>(root, GroupElement.Attrs.Name);
+            group.Name = CheckName(root, GroupElement.Attrs.Name);
             group.Id = CreateId(group.Name);
             group.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(GroupElement.Attrs.DisplayName, GroupElement.Attrs.Defaults.DisplayName));
             group.Description = ReplaceConstants(root.TryGetAttributeValue<string>(GroupElement.Attrs.Description, GroupElement.Attrs.Defaults.Description));
@@ -268,7 +293,7 @@ namespace SetMeta.Impl
         {
             var constant = new Constant();
 
-            constant.Name = TryGetMandatoryAttributeValue<string>(root, ConstantElement.Attrs.Name);
+            constant.Name = CheckName(root, ConstantElement.Attrs.Name);
             constant.ValueType = TryGetMandatoryAttributeValue<string>(root, ConstantElement.Attrs.ValueType);
             constant.Value = TryGetMandatoryAttributeValue<string>(root, ConstantElement.Attrs.Value);
 
@@ -330,7 +355,7 @@ namespace SetMeta.Impl
         {
             var option = new Option();
 
-            option.Name = TryGetMandatoryAttributeValue<string>(root, OptionElement.Attrs.Name);
+            option.Name = CheckName(root, OptionElement.Attrs.Name);
             option.Id = CreateId(option.Name);
             option.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.DisplayName, OptionElement.Attrs.Defaults.DisplayName));
             option.Description = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.Description, OptionElement.Attrs.Defaults.Description));
