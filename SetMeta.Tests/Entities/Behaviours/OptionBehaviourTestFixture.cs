@@ -10,7 +10,7 @@ namespace SetMeta.Tests.Entities.Behaviours
         : AutoFixtureBase
     {
         [Test]
-        public void Value_WhenWePassString_SameStringShouldBeReturned()
+        public void Value_ShouldReturnTheSameString_WhenWePassString()
         {
             var optionValueFactory = new OptionValueFactory();
             var optionValue = optionValueFactory.Create(OptionValueType.String);
@@ -25,7 +25,7 @@ namespace SetMeta.Tests.Entities.Behaviours
         }
 
         [Test]
-        public void StringValue_WhenWePassString_SameStringShouldBeReturned()
+        public void StringValue_ShouldReturnTheSameString_WhenWePassString()
         {
             var optionValueFactory = new OptionValueFactory();
             var optionValue = optionValueFactory.Create(OptionValueType.String);
@@ -40,7 +40,7 @@ namespace SetMeta.Tests.Entities.Behaviours
         }
 
         [Test]
-        public void OptionBehaviour_ConstructorNullChecks()
+        public void ShouldNotAcceptNullArgumentsForAllConstructors()
         {
             typeof(OptionBehaviourTest).ShouldNotAcceptNullConstructorArguments(AutoFixture);
         }

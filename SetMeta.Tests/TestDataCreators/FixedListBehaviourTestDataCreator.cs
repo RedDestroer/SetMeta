@@ -1,18 +1,45 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
+using SetMeta.Util;
 using FixedListElement = SetMeta.Entities.OptionSetElement.OptionElement.FixedListElement;
-using ListItemElement = SetMeta.Entities.OptionSetElement.OptionElement.FixedListElement.ListItemElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
     public class FixedListBehaviourTestDataCreator
         : IFixedListBehaviourTestDataCreator
     {
-        private readonly IList<KeyValuePair<string, string>> _listItems = new List<KeyValuePair<string, string>>();
+        private readonly IList<XElement> _listItems = new List<XElement>();
+        private IListItemTestDataCreator _listItemTestDataCreator;
 
-        public IFixedListBehaviourTestDataCreator WithListItem(string value, string displayValue = null)
+        public FixedListBehaviourTestDataCreator()
         {
-            _listItems.Add(new KeyValuePair<string, string>(value, displayValue));
+            ListItemTestDataCreator = new ListItemTestDataCreator();
+        }
+
+        public IListItemTestDataCreator ListItemTestDataCreator
+        {
+            get => _listItemTestDataCreator;
+            set => _listItemTestDataCreator = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        public IFixedListBehaviourTestDataCreator WithListItems(IEnumerable<XElement> elements)
+        {
+            _listItems.AddRange(elements);
+
+            return this;
+        }
+
+        public IFixedListBehaviourTestDataCreator WithListItem(XElement element)
+        {
+            _listItems.Add(element);
+
+            return this;
+        }
+
+        public IFixedListBehaviourTestDataCreator WithListItem(string value = null, string displayValue = null)
+        {
+            _listItems.Add(ListItemTestDataCreator.WithValue(value).WithDisplayValue(displayValue).Build());
 
             return this;
         }
@@ -21,12 +48,8 @@ namespace SetMeta.Tests.TestDataCreators
         {
             var body = new XElement(FixedListElement.ElementName);
 
-            foreach (var pair in _listItems)
+            foreach (var listItem in _listItems)
             {
-                var listItem = new XElement(ListItemElement.ElementName, new XAttribute(ListItemElement.Attrs.Value, pair.Key));
-                if (pair.Value != null)
-                    listItem.Add(new XAttribute(ListItemElement.Attrs.DisplayValue, pair.Value));
-
                 body.Add(listItem);
             }
 

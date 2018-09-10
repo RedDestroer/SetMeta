@@ -32,9 +32,9 @@ namespace SetMeta.Tests
             return AutoFixture.Freeze<T>();
         }
 
-        public string Fake(string prefix)
+        public string Fake(string prefix = "RandomString")
         {
-            return $"{prefix}{Fake<string>()}";
+            return $"{prefix}{Fake<int>()}";
         }
 
         public T Fake<T>()

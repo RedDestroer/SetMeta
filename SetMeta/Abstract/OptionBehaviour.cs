@@ -1,4 +1,5 @@
 ﻿using System;
+using SetMeta.Util;
 
 namespace SetMeta.Abstract
 {
@@ -6,7 +7,9 @@ namespace SetMeta.Abstract
     {
         protected OptionBehaviour(IOptionValue optionValue)
         {
-            OptionValue = optionValue ?? throw new ArgumentNullException(nameof(optionValue));
+            Validate.NotNull(optionValue, nameof(optionValue));
+
+            OptionValue = optionValue;
         }
 
         /// <summary>

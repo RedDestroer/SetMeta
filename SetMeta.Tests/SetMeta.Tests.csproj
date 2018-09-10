@@ -122,6 +122,7 @@
     <Compile Include="TestDataCreators\IFlagListBehaviourTestDataCreator.cs" />
     <Compile Include="TestDataCreators\IGroupOptionTestDataCreator.cs" />
     <Compile Include="TestDataCreators\IGroupTestDataCreator.cs" />
+    <Compile Include="TestDataCreators\IListItemTestDataCreator.cs" />
     <Compile Include="TestDataCreators\IMultiListBehaviourTestDataCreator.cs" />
     <Compile Include="TestDataCreators\IOptionSetV1TestDataCreator.cs" />
     <Compile Include="TestDataCreators\IOptionSuggestionTestDataCreator.cs" />
@@ -134,6 +135,8 @@
     <Compile Include="TestDataCreators\ISqlFlagListBehaviourTestDataCreator.cs" />
     <Compile Include="TestDataCreators\ISqlMultiListBehaviourTestDataCreator.cs" />
     <Compile Include="TestDataCreators\ISuggestionTestDataCreator.cs" />
+    <Compile Include="TestDataCreators\ListItemTestDataCreator.cs" />
+    <Compile Include="TestDataCreators\ListItemTestDataCreatorExtension.cs" />
     <Compile Include="TestDataCreators\MultiListBehaviourTestDataCreator.cs" />
     <Compile Include="TestDataCreators\OptionSetV1TestDataCreator.cs" />
     <Compile Include="TestDataCreators\OptionSetV1TestDataCreatorExtension.cs" />

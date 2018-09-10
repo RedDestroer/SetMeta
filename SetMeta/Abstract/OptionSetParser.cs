@@ -84,13 +84,13 @@ namespace SetMeta.Abstract
             }
 
             var name = reader.Name;
-            if (name != Keys.OptionSet)
-                throw new InvalidOperationException("Data is not 'optionSet'.");
+            if (name != OptionSetElement.ElementName)
+                throw new InvalidOperationException($"Data is not '{OptionSetElement.ElementName}'.");
 
-            if (!reader.MoveToAttribute(OptionSetAttributeKeys.Version))
-                throw new InvalidOperationException("There is no 'version' attribute.");
+            if (!reader.MoveToAttribute(OptionSetElement.Attrs.Version))
+                throw new InvalidOperationException($"There is no '{OptionSetElement.Attrs.Version}' attribute.");
 
-            var versionString = reader.GetAttribute(OptionSetAttributeKeys.Version);
+            var versionString = reader.GetAttribute(OptionSetElement.Attrs.Version);
             if (string.IsNullOrEmpty(versionString))
                 throw new InvalidOperationException("Serializer version is not set.");
 

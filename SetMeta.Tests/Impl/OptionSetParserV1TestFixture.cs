@@ -6,8 +6,6 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using AutoFixture;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NUnit.Framework;
 using SetMeta.Abstract;
@@ -19,8 +17,11 @@ using SetMeta.Tests.TestDataCreators;
 using SetMeta.Tests.Util;
 using SetMeta.Util;
 using XsdIterator;
-using Assert = NUnit.Framework.Assert;
 using OptionSetElement = SetMeta.Entities.OptionSetElement;
+using OptionElement = SetMeta.Entities.OptionSetElement.OptionElement;
+using ListItemElement = SetMeta.Entities.OptionSetElement.OptionElement.FixedListElement.ListItemElement;
+using SqlFixedListElement = SetMeta.Entities.OptionSetElement.OptionElement.SqlFixedListElement;
+using MultiListElement = SetMeta.Entities.OptionSetElement.OptionElement.MultiListElement;
 
 namespace SetMeta.Tests.Impl
 {
@@ -52,35 +53,19 @@ namespace SetMeta.Tests.Impl
         }
 
         [Test]
-        public void OptionSetParserV1_ConstructorNullChecks()
+        public void ShouldNotAcceptNullArgumentsForAllConstructors()
         {
-            typeof(OptionSetParserV1).ShouldNotAcceptNullConstructorArguments(AutoFixture);
+            ShouldNotAcceptNullArgumentsForAllConstructorsInner();
         }
 
         [Test]
-        public void Parse_WhenNullXmlTextReaderIsPassed_Throws()
+        public void ShouldNotAcceptNullArgumentsForAllMethods()
         {
-            void Delegate()
-            {
-                Sut.Parse((XmlTextReader)null, Fake<IOptionSetValidator>());
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "reader");
+            ShouldNotAcceptNullArgumentsForAllMethodsInner();
         }
 
         [Test]
-        public void Parse_WhenNullIOptionSetValidatorIsPassed_Throws()
-        {
-            void Delegate()
-            {
-                Sut.Parse(Fake<XmlTextReader>(), null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionSetValidator");
-        }
-
-        [Test]
-        public void Parse_WhenXmlHasNoBody_Throws()
+        public void Parse_ShouldThrowXmlException_WhenXmlHasNoBody()
         {
             Assert.Throws<XmlException>(() =>
             {
@@ -90,7 +75,6 @@ namespace SetMeta.Tests.Impl
                 }
             });
         }
-
 
         [Test]
         public void Parse_ShouldReturnOptionSet_WhenDocumentIsOnlyBody()
@@ -122,11 +106,12 @@ namespace SetMeta.Tests.Impl
         [Test]
         public void Parse_ShouldReadOptionAttributes()
         {
+            var name = Fake("_");
             var displayName = Fake<string>();
             var description = Fake<string>();
             var defaultValue = Fake<string>();
             var valueType = Fake<OptionValueType>();
-            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithDescription(description)
+            var optionSet = CreateOptionSetWithOneOption(name, tdc => tdc.WithDescription(description)
                 .WithDisplayName(displayName)
                 .WithDefaultValue(defaultValue)
                 .WithValueType(valueType));
@@ -150,141 +135,228 @@ namespace SetMeta.Tests.Impl
             Assert.That(actual.Options, Is.Not.Null);
             Assert.That(actual.Version, Is.EqualTo("1"));
             Assert.That(actual.Options[name].Name, Is.EqualTo(name));
-            Assert.That(actual.Options[name].DisplayName, Is.EqualTo(OptionSetElement.OptionElement.Attrs.Defaults.DisplayName));
-            Assert.That(actual.Options[name].Description, Is.EqualTo(OptionSetElement.OptionElement.Attrs.Defaults.Description));
-            Assert.That(actual.Options[name].DefaultValue, Is.EqualTo(OptionSetElement.OptionElement.Attrs.Defaults.DefaultValue));
-            Assert.That(actual.Options[name].ValueType, Is.EqualTo(OptionSetElement.OptionElement.Attrs.Defaults.ValueType));
+            Assert.That(actual.Options[name].DisplayName, Is.EqualTo(OptionElement.Attrs.Defaults.DisplayName));
+            Assert.That(actual.Options[name].Description, Is.EqualTo(OptionElement.Attrs.Defaults.Description));
+            Assert.That(actual.Options[name].DefaultValue, Is.EqualTo(OptionElement.Attrs.Defaults.DefaultValue));
+            Assert.That(actual.Options[name].ValueType, Is.EqualTo(OptionElement.Attrs.Defaults.ValueType));
         }
 
         [Test]
-        public void Parse_ShouldReturnRangedOptionBehaviour_WhenOptionHaveRangedMinMaxElements()
+        public void Parse_ShouldReturnRangedOptionBehaviour_WhenOptionContainsRangedMinMaxElement()
         {
             var minValue = Fake<string>();
             var maxValue = Fake<string>();
             var behavior = TestDataCreator.RangedMinMaxBehaviour.Build(minValue, maxValue);
             (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
 
-            var actual = Sut.Parse(CreateReader(optionSet), Fake<IOptionSetValidator>());
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
             Assert.That(actual.Options[name].Behaviour, Is.TypeOf<RangedOptionBehaviour>());
 
-            var rangedOptionBehaviour = (RangedOptionBehaviour)actual.Options[name].Behaviour;
+            var actualBehavior = (RangedOptionBehaviour)actual.Options[name].Behaviour;
 
-            Assert.That(rangedOptionBehaviour.MaxValue, Is.EqualTo(maxValue));
-            Assert.That(rangedOptionBehaviour.MinValue, Is.EqualTo(minValue));
-            Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.True);
-            Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.True);
+            Assert.That(actualBehavior.MaxValue, Is.EqualTo(maxValue));
+            Assert.That(actualBehavior.MinValue, Is.EqualTo(minValue));
+            Assert.That(actualBehavior.IsMaxValueExists, Is.True);
+            Assert.That(actualBehavior.IsMinValueExists, Is.True);
         }
 
         [Test]
-        public void Parse_ShouldReturnRangedOptionBehaviour_WhenOptionHaveRangedMaxElements()
+        public void Parse_ShouldReturnRangedOptionBehaviour_WhenOptionContainsRangedMaxElement()
         {
             var maxValue = Fake<string>();
             var behavior = TestDataCreator.RangedMaxBehaviour.Build(maxValue);
             (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
 
-            var actual = Sut.Parse(CreateReader(optionSet), Fake<IOptionSetValidator>());
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
             Assert.That(actual.Options[name].Behaviour, Is.TypeOf<RangedOptionBehaviour>());
 
-            var rangedOptionBehaviour = (RangedOptionBehaviour)actual.Options[name].Behaviour;
+            var actualBehavior = (RangedOptionBehaviour)actual.Options[name].Behaviour;
 
-            Assert.That(rangedOptionBehaviour.MaxValue, Is.EqualTo(maxValue));
-            Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.True);
-            Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.False);
+            Assert.That(actualBehavior.MaxValue, Is.EqualTo(maxValue));
+            Assert.That(actualBehavior.IsMaxValueExists, Is.True);
+            Assert.That(actualBehavior.IsMinValueExists, Is.False);
         }
 
         [Test]
-        public void Parse_ShouldReturnRangedOptionBehaviour_WhenOptionHaveRangedMinElements()
+        public void Parse_ShouldReturnRangedOptionBehaviour_WhenOptionContainsRangedMinElement()
         {
             var minValue = Fake<string>();
             var behavior = TestDataCreator.RangedMinBehaviour.Build(minValue);
             (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
 
-            var actual = Sut.Parse(CreateReader(optionSet), Fake<IOptionSetValidator>());
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
             Assert.That(actual.Options[name].Behaviour, Is.TypeOf<RangedOptionBehaviour>());
 
-            var rangedOptionBehaviour = (RangedOptionBehaviour)actual.Options[name].Behaviour;
+            var actualBehavior = (RangedOptionBehaviour)actual.Options[name].Behaviour;
 
-            Assert.That(rangedOptionBehaviour.MinValue, Is.EqualTo(minValue));
-            Assert.That(rangedOptionBehaviour.IsMaxValueExists, Is.False);
-            Assert.That(rangedOptionBehaviour.IsMinValueExists, Is.True);
+            Assert.That(actualBehavior.MinValue, Is.EqualTo(minValue));
+            Assert.That(actualBehavior.IsMaxValueExists, Is.False);
+            Assert.That(actualBehavior.IsMinValueExists, Is.True);
         }
 
         [Test]
-        public void Parse_WhenItPresentFixedListBehaviour_ShouldReturnCorrectBehaviour()
+        public void Parse_ShouldReturnFixedListOptionBehaviour_WhenOptionContainsFixedListElement()
         {
-            var optionValue = _optionValueFactory.Create(Fake<OptionValueType>());
-            var list = FakeManyListItems(optionValue);
+            var listItems = TestDataCreator.ListItemTestDataCreator
+                .BuildMany(this)
+                .ToList();
+            var expectedListItems = CreateExpectedListItems(listItems).ToList();
+            var behavior = TestDataCreator.FixedListBehaviour
+                .WithListItems(listItems)
+                .Build();
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
 
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateFixedListBehaviour(optionValue, list));
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<FixedListOptionBehaviour>());
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var actualBehavior = (FixedListOptionBehaviour)actual.Options[name].Behaviour;
 
-            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<FixedListOptionBehaviour>());
-
-            var fixedListOptionBehaviour = (FixedListOptionBehaviour) actual.Options.First().Value.Behaviour;
-
-            Assert.That(fixedListOptionBehaviour.ListItems, Is.EqualTo(list));
+            Assert.That(actualBehavior.ListItems, Is.Not.Null);
+            Assert.That(actualBehavior.ListItems.Count, Is.EqualTo(3));
+            Assert.That(actualBehavior.ListItems, Is.EquivalentTo(expectedListItems));
         }
 
         [Test]
-        public void Parse_WhenItPresentFlagListBehaviour_ShouldReturnCorrectBehaviour()
+        public void Parse_ShouldReturnFixedListOptionBehaviourWithDefaults_WhenOptionContainsFixedListElementWithoutOptionalAttributes()
         {
-            var optionValue = _optionValueFactory.Create(Fake<OptionValueType>());
-            var list = FakeManyListItems(optionValue);
+            var behavior = TestDataCreator.FixedListBehaviour
+                .Build();
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
 
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateFlagListBehaviour(optionValue, list));
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<FixedListOptionBehaviour>());
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var actualBehavior = (FixedListOptionBehaviour)actual.Options[name].Behaviour;
 
-            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<FlagListOptionBehaviour>());
-
-            var flagListOptionBehaviour = (FlagListOptionBehaviour)actual.Options.First().Value.Behaviour;
-
-            Assert.That(flagListOptionBehaviour.ListItems, Is.EqualTo(list));
-
-        }
-
-        [TestCase(true, "/")]
-        [TestCase(true, ";")]
-        [TestCase(false, "/")]
-        public void Parse_WhenItPresentMultiListBehaviour_ShouldReturnCorrectBehaviour(bool sorted, string separator)
-        {
-            var optionValue = _optionValueFactory.Create(Fake<OptionValueType>());
-            var list = FakeManyListItems(optionValue);
-
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateMultiListBehaviour(optionValue, list, sorted, separator));
-
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-
-            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<MultiListOptionBehaviour>());
-
-            var multiListOptionBehaviour = (MultiListOptionBehaviour)actual.Options.First().Value.Behaviour;
-
-            Assert.That(multiListOptionBehaviour.ListItems, Is.EqualTo(list));
-            Assert.That(multiListOptionBehaviour.Sorted, Is.EqualTo(sorted));
-            Assert.That(multiListOptionBehaviour.Separator, Is.EqualTo(separator));
-
+            Assert.That(actualBehavior.ListItems, Is.Not.Null);
+            Assert.That(actualBehavior.ListItems.Count, Is.EqualTo(0));
         }
 
         [Test]
-        public void Parse_WhenItPresentSqlFixedListBehaviour_ShouldReturnCorrectBehaviour()
+        public void Parse_ShouldReturnFlagListOptionBehaviour_WhenOptionContainsFlagListElement()
+        {
+            var listItems = TestDataCreator.ListItemTestDataCreator
+                .BuildMany(this)
+                .ToList();
+            var expectedListItems = CreateExpectedListItems(listItems).ToList();
+            var behavior = TestDataCreator.FlagListBehaviour
+                .WithListItems(listItems)
+                .Build();
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
+
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<FlagListOptionBehaviour>());
+
+            var actualBehavior = (FlagListOptionBehaviour)actual.Options[name].Behaviour;
+
+            Assert.That(actualBehavior.ListItems, Is.Not.Null);
+            Assert.That(actualBehavior.ListItems.Count, Is.EqualTo(3));
+            Assert.That(actualBehavior.ListItems, Is.EquivalentTo(expectedListItems));
+        }
+
+        [Test]
+        public void Parse_ShouldReturnFlagListOptionBehaviourWithDefaults_WhenOptionContainsFlagListElementWithoutOptionalAttributes()
+        {
+            var behavior = TestDataCreator.FlagListBehaviour
+                .Build();
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
+
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<FlagListOptionBehaviour>());
+
+            var actualBehavior = (FlagListOptionBehaviour)actual.Options[name].Behaviour;
+
+            Assert.That(actualBehavior.ListItems, Is.Not.Null);
+            Assert.That(actualBehavior.ListItems.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Parse_ShouldReturnMultiListOptionBehaviour_WhenOptionContainsMultiListElement()
+        {
+            var sorted = Fake<bool>();
+            var separator = Fake<string>();
+            var listItems = TestDataCreator.ListItemTestDataCreator
+                .BuildMany(this)
+                .ToList();
+            var expectedListItems = CreateExpectedListItems(listItems).ToList();
+            var behavior = TestDataCreator.MultiListBehaviour
+                .WithListItems(listItems)
+                .AsSorted(sorted)
+                .WithSeparator(separator)
+                .Build();
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
+
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<MultiListOptionBehaviour>());
+
+            var actualBehavior = (MultiListOptionBehaviour)actual.Options[name].Behaviour;
+
+            Assert.That(actualBehavior.ListItems, Is.Not.Null);
+            Assert.That(actualBehavior.ListItems.Count, Is.EqualTo(3));
+            Assert.That(actualBehavior.ListItems, Is.EquivalentTo(expectedListItems));
+            Assert.That(actualBehavior.Sorted, Is.EqualTo(sorted));
+            Assert.That(actualBehavior.Separator, Is.EqualTo(separator));
+        }
+
+        [Test]
+        public void Parse_ShouldReturnMultiListOptionBehaviourWithDefaults_WhenOptionContainsMultiListElementWithoutOptionalAttributes()
+        {
+            var behavior = TestDataCreator.MultiListBehaviour
+                .Build();
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
+
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<MultiListOptionBehaviour>());
+
+            var actualBehavior = (MultiListOptionBehaviour)actual.Options[name].Behaviour;
+
+            Assert.That(actualBehavior.ListItems, Is.Not.Null);
+            Assert.That(actualBehavior.ListItems.Count, Is.EqualTo(0));
+            Assert.That(actualBehavior.Sorted, Is.EqualTo(MultiListElement.Attrs.Defaults.Sorted));
+            Assert.That(actualBehavior.Separator, Is.EqualTo(MultiListElement.Attrs.Defaults.Separator));
+        }
+        
+        [Test]
+        public void Parse_ShouldReturnSqlFixedListOptionBehaviour_WhenOptionContainsSqlFixedListElement()
         {
             var query = Fake<string>();
-            var memberValue = Fake<string>();
-            var displayValue = Fake<string>();
+            var valueFieldName = Fake<string>();
+            var displayValueFieldName = Fake<string>();
+            var behavior = TestDataCreator.SqlFixedListBehaviour
+                .WithValueFieldName(valueFieldName)
+                .WithDisplayValueFieldName(displayValueFieldName)
+                .Build(query);
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
 
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlFixedListBehaviour(query, memberValue, displayValue));
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<SqlFixedListOptionBehaviour>());
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var actualBehavior = (SqlFixedListOptionBehaviour)actual.Options[name].Behaviour;
 
-            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<SqlFixedListOptionBehaviour>());
-
-            var sqlFixedListOptionBehaviour = (SqlFixedListOptionBehaviour)actual.Options.First().Value.Behaviour;
-
-            Assert.That(sqlFixedListOptionBehaviour.Query, Is.EqualTo(query));
-            Assert.That(sqlFixedListOptionBehaviour.ValueMember, Is.EqualTo(memberValue));
-            Assert.That(sqlFixedListOptionBehaviour.DisplayMember, Is.EqualTo(displayValue));
+            Assert.That(actualBehavior.Query, Is.EqualTo(query));
+            Assert.That(actualBehavior.ValueMember, Is.EqualTo(valueFieldName));
+            Assert.That(actualBehavior.DisplayMember, Is.EqualTo(displayValueFieldName));
         }
+
+        [Test]
+        public void Parse_ShouldReturnSqlFixedListOptionBehaviourWithDefaults_WhenOptionContainsSqlFixedListElementWithoutOptionalAttributes()
+        {
+            var query = Fake<string>();
+            var behavior = TestDataCreator.SqlFixedListBehaviour
+                .Build(query);
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
+
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<SqlFixedListOptionBehaviour>());
+
+            var actualBehavior = (SqlFixedListOptionBehaviour)actual.Options[name].Behaviour;
+
+            Assert.That(actualBehavior.Query, Is.EqualTo(query));
+            Assert.That(actualBehavior.ValueMember, Is.EqualTo(SqlFixedListElement.Attrs.Defaults.ValueFieldName));
+            Assert.That(actualBehavior.DisplayMember, Is.EqualTo(SqlFixedListElement.Attrs.Defaults.DisplayValueFieldName));
+        }
+
+        /**Остановился тут**/
 
         [Test]
         public void Parse_WhenItPresentSqlFlagListBehaviour_ShouldReturnCorrectBehaviour()
@@ -1061,6 +1133,19 @@ namespace SetMeta.Tests.Impl
             return new XElement("suggestion", new XElement("regex", new XAttribute("value", value)));
         }
 
+        private XDocument CreateOptionSetWithOneOption(string name, Func<IOptionTestDataCreator, IOptionTestDataCreator> augment = null)
+        {
+            var tdc = TestDataCreator.Option;
+            if (augment != null)
+                tdc = augment(tdc);
+            var option = tdc.Build(name);
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(option)
+                .Build();
+
+            return optionSet;
+        }
+
         private (string, XDocument) CreateOptionSetWithOneOption(Func<IOptionTestDataCreator, IOptionTestDataCreator> augment = null)
         {
             var name = Fake("_");
@@ -1073,6 +1158,11 @@ namespace SetMeta.Tests.Impl
                 .Build();
 
             return (name, optionSet);
+        }
+
+        private IEnumerable<ListItem> CreateExpectedListItems(IEnumerable<XElement> elements)
+        {
+            return elements.Select(o => new ListItem((object)o.GetAttributeValue<string>(ListItemElement.Attrs.Value), o.GetAttributeValue<string>(ListItemElement.Attrs.DisplayValue)));
         }
 
         private class ExceptionOptionSetValidator

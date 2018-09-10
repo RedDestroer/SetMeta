@@ -11,6 +11,7 @@
             RangedMaxBehaviour = new RangedMaxBehaviourTestDataCreator();
             RangedMinBehaviour = new RangedMinBehaviourTestDataCreator();
             FixedListBehaviour = new FixedListBehaviourTestDataCreator();
+            ListItemTestDataCreator = new ListItemTestDataCreator();
             SqlFixedListBehaviour = new SqlFixedListBehaviourTestDataCreator();
             FlagListBehaviour = new FlagListBehaviourTestDataCreator();
             SqlFlagListBehaviour = new SqlFlagListBehaviourTestDataCreator();
@@ -29,6 +30,7 @@
         public IRangedMaxBehaviourTestDataCreator RangedMaxBehaviour { get; }
         public IRangedMinBehaviourTestDataCreator RangedMinBehaviour { get; }
         public IFixedListBehaviourTestDataCreator FixedListBehaviour { get; }
+        public IListItemTestDataCreator ListItemTestDataCreator { get; }
         public ISqlFixedListBehaviourTestDataCreator SqlFixedListBehaviour { get; }
         public IFlagListBehaviourTestDataCreator FlagListBehaviour { get; }
         public ISqlFlagListBehaviourTestDataCreator SqlFlagListBehaviour { get; }

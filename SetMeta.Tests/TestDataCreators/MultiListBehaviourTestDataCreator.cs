@@ -1,20 +1,33 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
+using SetMeta.Util;
 using MultiListElement = SetMeta.Entities.OptionSetElement.OptionElement.MultiListElement;
-using ListItemElement = SetMeta.Entities.OptionSetElement.OptionElement.MultiListElement.ListItemElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
     public class MultiListBehaviourTestDataCreator
         : IMultiListBehaviourTestDataCreator
     {
-        private readonly IList<KeyValuePair<string, string>> _listItems = new List<KeyValuePair<string, string>>();
+        private readonly IList<XElement> _listItems = new List<XElement>();
+        private IListItemTestDataCreator _listItemTestDataCreator;
         private bool? _sorted;
         private string _separator;
 
-        public IMultiListBehaviourTestDataCreator AsSorted()
+        public MultiListBehaviourTestDataCreator()
         {
-            _sorted = true;
+            ListItemTestDataCreator = new ListItemTestDataCreator();
+        }
+
+        public IListItemTestDataCreator ListItemTestDataCreator
+        {
+            get => _listItemTestDataCreator;
+            set => _listItemTestDataCreator = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        public IMultiListBehaviourTestDataCreator AsSorted(bool? sorted = true)
+        {
+            _sorted = sorted;
 
             return this;
         }
@@ -26,9 +39,23 @@ namespace SetMeta.Tests.TestDataCreators
             return this;
         }
 
-        public IMultiListBehaviourTestDataCreator WithListItem(string value, string displayValue)
+        public IMultiListBehaviourTestDataCreator WithListItems(IEnumerable<XElement> elements)
         {
-            _listItems.Add(new KeyValuePair<string, string>(value, displayValue));
+            _listItems.AddRange(elements);
+
+            return this;
+        }
+
+        public IMultiListBehaviourTestDataCreator WithListItem(XElement element)
+        {
+            _listItems.Add(element);
+
+            return this;
+        }
+
+        public IMultiListBehaviourTestDataCreator WithListItem(string value = null, string displayValue = null)
+        {
+            _listItems.Add(ListItemTestDataCreator.WithValue(value).WithDisplayValue(displayValue).Build());
 
             return this;
         }
@@ -42,12 +69,8 @@ namespace SetMeta.Tests.TestDataCreators
             if (_separator != null)
                 body.Add(new XAttribute(MultiListElement.Attrs.Separator, _separator));
 
-            foreach (var pair in _listItems)
+            foreach (var listItem in _listItems)
             {
-                var listItem = new XElement(ListItemElement.ElementName, new XAttribute(ListItemElement.Attrs.Value, pair.Key));
-                if (pair.Value != null)
-                    listItem.Add(new XAttribute(ListItemElement.Attrs.DisplayValue, pair.Value));
-
                 body.Add(listItem);
             }
 

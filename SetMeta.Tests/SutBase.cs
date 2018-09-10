@@ -1,6 +1,8 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Kernel;
+using NUnit.Framework;
+using SetMeta.Tests.Util;
 
 namespace SetMeta.Tests
 {
@@ -22,6 +24,16 @@ namespace SetMeta.Tests
             AutoFixture.Customize(new AutoMoqCustomization());
             AutoFixture.Behaviors.Add(new OmitOnRecursionBehavior());
             AutoFixture.Customize<TSut>(o => o.FromFactory(new MethodInvoker(new GreedyConstructorQuery())));
+        }
+
+        protected virtual void ShouldNotAcceptNullArgumentsForAllConstructorsInner()
+        {
+            Sut.GetType().ShouldNotAcceptNullConstructorArguments(AutoFixture);
+        }
+
+        protected virtual void ShouldNotAcceptNullArgumentsForAllMethodsInner()
+        {
+            Sut.GetType().ShouldNotAcceptNullArgumentsForAllMethods(AutoFixture);
         }
     }
 }

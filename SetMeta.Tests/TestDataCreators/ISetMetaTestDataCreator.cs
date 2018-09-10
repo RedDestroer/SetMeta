@@ -8,6 +8,7 @@
         IRangedMaxBehaviourTestDataCreator RangedMaxBehaviour { get; }
         IRangedMinBehaviourTestDataCreator RangedMinBehaviour { get; }
         IFixedListBehaviourTestDataCreator FixedListBehaviour { get; }
+        IListItemTestDataCreator ListItemTestDataCreator { get; }
         ISqlFixedListBehaviourTestDataCreator SqlFixedListBehaviour { get; }
         IFlagListBehaviourTestDataCreator FlagListBehaviour { get; }
         ISqlFlagListBehaviourTestDataCreator SqlFlagListBehaviour { get; }

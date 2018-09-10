@@ -11,7 +11,7 @@ namespace SetMeta.Tests.Entities.Behaviours
         : AutoFixtureBase
     {
         [Test]
-        public void RangedOptionBehaviour_ConstructorNullChecks()
+        public void ShouldNotAcceptNullArgumentsForAllConstructors()
         {
             typeof(RangedOptionBehaviour).ShouldNotAcceptNullConstructorArguments(AutoFixture, BindingFlags.Instance | BindingFlags.NonPublic);
         }
