@@ -2,6 +2,7 @@
 using System.Xml.Linq;
 using SetMeta.Entities;
 using SetMeta.Util;
+using SetMeta.XmlKeys;
 
 namespace SetMeta.Tests.TestDataCreators
 {

@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using SuggestionElement = SetMeta.Entities.OptionSetElement.GroupElement.OptionElement.SuggestionElement;
+using SuggestionElement = SetMeta.XmlKeys.OptionSetElement.GroupElement.OptionElement.SuggestionElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {

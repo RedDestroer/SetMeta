@@ -8,6 +8,7 @@ using System.Xml;
 using SetMeta.Entities;
 using SetMeta.Impl;
 using SetMeta.Util;
+using SetMeta.XmlKeys;
 
 namespace SetMeta.Abstract
 {

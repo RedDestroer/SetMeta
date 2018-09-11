@@ -4,7 +4,7 @@ namespace SetMeta.Tests.TestDataCreators
 {
     public interface ISqlMultiListBehaviourTestDataCreator
     {
-        ISqlMultiListBehaviourTestDataCreator AsSorted();
+        ISqlMultiListBehaviourTestDataCreator AsSorted(bool? sorted = false);
         ISqlMultiListBehaviourTestDataCreator WithSeparator(string separator);
         ISqlMultiListBehaviourTestDataCreator WithValueFieldName(string valueFieldName);
         ISqlMultiListBehaviourTestDataCreator WithDisplayValueFieldName(string displayValueFieldName);

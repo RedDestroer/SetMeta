@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using SqlFixedListElement = SetMeta.Entities.OptionSetElement.OptionElement.SqlFixedListElement;
+using SqlFixedListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlFixedListElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {

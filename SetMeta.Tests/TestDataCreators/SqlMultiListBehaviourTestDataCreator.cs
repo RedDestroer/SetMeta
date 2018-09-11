@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using SqlMultiListElement = SetMeta.Entities.OptionSetElement.OptionElement.SqlMultiListElement;
+using SqlMultiListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlMultiListElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
@@ -25,9 +25,9 @@ namespace SetMeta.Tests.TestDataCreators
             return this;
         }
 
-        public ISqlMultiListBehaviourTestDataCreator AsSorted()
+        public ISqlMultiListBehaviourTestDataCreator AsSorted(bool? sorted = false)
         {
-            _sorted = true;
+            _sorted = sorted;
 
             return this;
         }

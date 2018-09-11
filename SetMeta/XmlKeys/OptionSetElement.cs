@@ -1,5 +1,6 @@
-﻿namespace SetMeta.Entities
+﻿namespace SetMeta.XmlKeys
 {
+    // ReSharper disable MemberHidesStaticFromOuterClass
     internal static class OptionSetElement
     {
         public const string ElementName = "optionSet";
@@ -125,6 +126,12 @@
                     public const string Query = "query";
                     public const string ValueFieldName = "valueFieldName";
                     public const string DisplayValueFieldName = "displayValueFieldName";
+
+                    internal static class Defaults
+                    {
+                        public const string ValueFieldName = "value";
+                        public const string DisplayValueFieldName = "displayValue";
+                    }
                 }
             }
 
@@ -167,6 +174,14 @@
                     public const string Query = "query";
                     public const string ValueFieldName = "valueFieldName";
                     public const string DisplayValueFieldName = "displayValueFieldName";
+
+                    internal static class Defaults
+                    {
+                        public const bool Sorted = false;
+                        public const string Separator = ";";
+                        public const string ValueFieldName = "value";
+                        public const string DisplayValueFieldName = "displayValue";
+                    }
                 }
             }
         }
@@ -221,7 +236,11 @@
                 // ReSharper disable once MemberHidesStaticFromOuterClass
                 public const string Name = "name";
                 public const string Value = "value";
-                public const string ValueType = "valueType";
+
+                internal static class Defaults
+                {
+                    public const string Value = null;
+                }
             }
         }
 

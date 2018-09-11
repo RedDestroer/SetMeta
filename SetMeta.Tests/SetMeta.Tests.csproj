@@ -103,6 +103,7 @@
     <Compile Include="Entities\Behaviours\OptionBehaviourTestFixture.cs" />
     <Compile Include="Impl\OptionSetParserTestFixture.cs" />
     <Compile Include="Impl\OptionSetParserV1TestFixture.cs" />
+    <Compile Include="Impl\OptionSetParserV1XsdTestFixture.cs" />
     <Compile Include="Impl\OptionValueConverterTestFixture.cs" />
     <Compile Include="Impl\OptionValueFactoryTestFixture.cs" />
     <Compile Include="Entities\Behaviours\RangedOptionBehaviourTestFixture.cs" />

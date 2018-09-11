@@ -4,6 +4,7 @@ namespace SetMeta.Tests.TestDataCreators
 {
     public interface IConstantTestDataCreator
     {
-        XElement Build(string name, string value, string valueType);
+        IConstantTestDataCreator WithValue(string value);
+        XElement Build(string name);
     }
 }

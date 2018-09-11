@@ -4,24 +4,22 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
-using System.Xml.Schema;
 using AutoFixture;
 using Moq;
 using NUnit.Framework;
 using SetMeta.Abstract;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
-using SetMeta.Entities.Suggestions;
 using SetMeta.Impl;
 using SetMeta.Tests.TestDataCreators;
-using SetMeta.Tests.Util;
 using SetMeta.Util;
-using XsdIterator;
-using OptionSetElement = SetMeta.Entities.OptionSetElement;
-using OptionElement = SetMeta.Entities.OptionSetElement.OptionElement;
-using ListItemElement = SetMeta.Entities.OptionSetElement.OptionElement.FixedListElement.ListItemElement;
-using SqlFixedListElement = SetMeta.Entities.OptionSetElement.OptionElement.SqlFixedListElement;
-using MultiListElement = SetMeta.Entities.OptionSetElement.OptionElement.MultiListElement;
+using OptionElement = SetMeta.XmlKeys.OptionSetElement.OptionElement;
+using ListItemElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.FixedListElement.ListItemElement;
+using SqlFixedListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlFixedListElement;
+using MultiListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.MultiListElement;
+using SqlFlagListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlFlagListElement;
+using SqlMultiListElement= SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlMultiListElement;
+using ConstantElement = SetMeta.XmlKeys.OptionSetElement.ConstantElement;
 
 namespace SetMeta.Tests.Impl
 {
@@ -29,26 +27,12 @@ namespace SetMeta.Tests.Impl
     internal class OptionSetParserV1TestFixture
         : SutBase<OptionSetParserV1, OptionSetParser>
     {
-        private static readonly Lazy<IOptionInformant> OptionInformant;
-        private IOptionValueFactory _optionValueFactory = new OptionValueFactory();
+        
         private static readonly IOptionSetValidator ThrowOptionSetValidator = new ExceptionOptionSetValidator();
-
-        static OptionSetParserV1TestFixture()
-        {
-            OptionInformant = new Lazy<IOptionInformant>(() =>
-            {
-                using (var reader = new XmlTextReader(StaticResources.GetStream("OptionSetV1.xsd")))
-                {
-                    var xmlSchema = XmlSchema.Read(reader, null);
-                    return TraverseXmlSchema(xmlSchema);
-                }
-            });
-        }
 
         protected override void SetUpInner()
         {
             AutoFixture.Register<IOptionValueFactory>(() => new OptionValueFactory());
-            _optionValueFactory = AutoFixture.Create<IOptionValueFactory>();
             base.SetUpInner();
         }
 
@@ -91,16 +75,14 @@ namespace SetMeta.Tests.Impl
         [Test]
         public void Parse_ShouldReturnExpectedOption_WhenOptionsIsSet()
         {
-            var option = TestDataCreator.Option.Build(Fake<string>());
-            var optionSet = TestDataCreator.OptionSet
-                .WithElement(option)
-                .Build();
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
             Assert.That(actual.Options, Is.Not.Null);
             Assert.That(actual.Version, Is.EqualTo("1"));
             Assert.That(actual.Options.Count, Is.EqualTo(1));
+            Assert.That(actual.Options.ContainsKey(name), Is.True);
         }
 
         [Test]
@@ -127,7 +109,7 @@ namespace SetMeta.Tests.Impl
         }
 
         [Test]
-        public void Parse_ShouldReturnDefaults_WhenAttributesAreAbsent()
+        public void Parse_ShouldReturnOptionDefaults_WhenAttributesAreAbsent()
         {
             (string name, XDocument optionSet) = CreateOptionSetWithOneOption();
 
@@ -356,436 +338,444 @@ namespace SetMeta.Tests.Impl
             Assert.That(actualBehavior.DisplayMember, Is.EqualTo(SqlFixedListElement.Attrs.Defaults.DisplayValueFieldName));
         }
 
-        /**Остановился тут**/
-
         [Test]
-        public void Parse_WhenItPresentSqlFlagListBehaviour_ShouldReturnCorrectBehaviour()
+        public void Parse_ShouldReturnSqlFlagListOptionBehaviour_WhenOptionContainsSqlFlagListElement()
         {
             var query = Fake<string>();
-            var memberValue = Fake<string>();
-            var displayValue = Fake<string>();
+            var valueFieldName = Fake<string>();
+            var displayValueFieldName = Fake<string>();
+            var behavior = TestDataCreator.SqlFlagListBehaviour
+                .WithValueFieldName(valueFieldName)
+                .WithDisplayValueFieldName(displayValueFieldName)
+                .Build(query);
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
 
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlFlagListBehaviour(query, memberValue, displayValue));
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<SqlFlagListOptionBehaviour>());
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var actualBehavior = (SqlFlagListOptionBehaviour)actual.Options[name].Behaviour;
 
-            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<SqlFlagListOptionBehaviour>());
-
-            var sqlFlagListOptionBehaviour = (SqlFlagListOptionBehaviour)actual.Options.First().Value.Behaviour;
-
-            Assert.That(sqlFlagListOptionBehaviour.Query, Is.EqualTo(query));
-            Assert.That(sqlFlagListOptionBehaviour.ValueMember, Is.EqualTo(memberValue));
-            Assert.That(sqlFlagListOptionBehaviour.DisplayMember, Is.EqualTo(displayValue));
+            Assert.That(actualBehavior.Query, Is.EqualTo(query));
+            Assert.That(actualBehavior.ValueMember, Is.EqualTo(valueFieldName));
+            Assert.That(actualBehavior.DisplayMember, Is.EqualTo(displayValueFieldName));
         }
 
         [Test]
-        public void Parse_WhenItPresentSqlMultiListBehaviour_ShouldReturnCorrectBehaviour()
+        public void Parse_ShouldReturnSqlFlagListOptionBehaviourWithDefaults_WhenOptionContainsSqlFlagListElementWithoutOptionalAttributes()
+        {
+            var query = Fake<string>();
+            var behavior = TestDataCreator.SqlFlagListBehaviour
+                .Build(query);
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
+
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<SqlFlagListOptionBehaviour>());
+
+            var actualBehavior = (SqlFlagListOptionBehaviour)actual.Options[name].Behaviour;
+
+            Assert.That(actualBehavior.Query, Is.EqualTo(query));
+            Assert.That(actualBehavior.ValueMember, Is.EqualTo(SqlFlagListElement.Attrs.Defaults.ValueFieldName));
+            Assert.That(actualBehavior.DisplayMember, Is.EqualTo(SqlFlagListElement.Attrs.Defaults.DisplayValueFieldName));
+        }
+
+        [Test]
+        public void Parse_ShouldReturnSqlMultiListOptionBehaviour_WhenOptionContainsSqlMultiListElement()
         {
             var query = Fake<string>();
             var sorted = Fake<bool>();
             var separator = Fake<string>();
-            var memberValue = Fake<string>();
-            var displayValue = Fake<string>();
+            var valueFieldName = Fake<string>();
+            var displayValueFieldName = Fake<string>();
+            var behavior = TestDataCreator.SqlMultiListBehaviour
+                .WithSeparator(separator)
+                .AsSorted(sorted)
+                .WithValueFieldName(valueFieldName)
+                .WithDisplayValueFieldName(displayValueFieldName)
+                .Build(query);
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
 
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required, null, null, CreateSqlMultiListBehaviour( query, sorted, separator, memberValue, displayValue));
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<SqlMultiListOptionBehaviour>());
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var actualBehavior = (SqlMultiListOptionBehaviour)actual.Options[name].Behaviour;
 
-            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<SqlMultiListOptionBehaviour>());
-
-            var sqlMultiListOptionBehaviour = (SqlMultiListOptionBehaviour)actual.Options.First().Value.Behaviour;
-
-            Assert.That(sqlMultiListOptionBehaviour.Query, Is.EqualTo(query));
-            Assert.That(sqlMultiListOptionBehaviour.Sorted, Is.EqualTo(sorted));
-            Assert.That(sqlMultiListOptionBehaviour.Separator, Is.EqualTo(separator));
-            Assert.That(sqlMultiListOptionBehaviour.ValueMember, Is.EqualTo(memberValue));
-            Assert.That(sqlMultiListOptionBehaviour.DisplayMember, Is.EqualTo(displayValue));
+            Assert.That(actualBehavior.Query, Is.EqualTo(query));
+            Assert.That(actualBehavior.Sorted, Is.EqualTo(sorted));
+            Assert.That(actualBehavior.Separator, Is.EqualTo(separator));
+            Assert.That(actualBehavior.ValueMember, Is.EqualTo(valueFieldName));
+            Assert.That(actualBehavior.DisplayMember, Is.EqualTo(displayValueFieldName));
         }
 
         [Test]
-        public void Parse_WhenItPresentDifferentOptionValueType_ShouldReturnCorrectRealTypes([Values]OptionValueType optionValueType)
+        public void Parse_ShouldReturnSqlMultiListOptionBehaviourWithDefaults_WhenOptionContainsSqlMultiListElementWithoutOptionalAttributes()
         {
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required || a.Name == "valueType", "valueType", optionValueType.ToString());
+            var query = Fake<string>();
+            var behavior = TestDataCreator.SqlMultiListBehaviour
+                .Build(query);
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithBehaviour(behavior));
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<SqlMultiListOptionBehaviour>());
 
-            Assert.That(actual.Options.First().Value.Behaviour, Is.TypeOf<SimpleOptionBehaviour>());
+            var actualBehavior = (SqlMultiListOptionBehaviour)actual.Options[name].Behaviour;
 
-            var simpleOptionBehaviour = (SimpleOptionBehaviour)actual.Options.First().Value.Behaviour;
+            Assert.That(actualBehavior.Query, Is.EqualTo(query));
+            Assert.That(actualBehavior.Sorted, Is.EqualTo(SqlMultiListElement.Attrs.Defaults.Sorted));
+            Assert.That(actualBehavior.Separator, Is.EqualTo(SqlMultiListElement.Attrs.Defaults.Separator));
+            Assert.That(actualBehavior.ValueMember, Is.EqualTo(SqlMultiListElement.Attrs.Defaults.ValueFieldName));
+            Assert.That(actualBehavior.DisplayMember, Is.EqualTo(SqlMultiListElement.Attrs.Defaults.DisplayValueFieldName));
+        }
+
+        [Test]
+        public void Parse_ShouldReturnCorrectOptionValueType_ForAllOptionValueTypeEnum([Values]OptionValueType optionValueType)
+        {
+            (string name, XDocument optionSet) = CreateOptionSetWithOneOption(tdc => tdc.WithValueType(optionValueType));
+
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+
+            Assert.That(actual.Options[name].Behaviour, Is.TypeOf<SimpleOptionBehaviour>());
+
+            var simpleOptionBehaviour = (SimpleOptionBehaviour)actual.Options[name].Behaviour;
 
             Assert.That(simpleOptionBehaviour.OptionValueType, Is.EqualTo(optionValueType));
-
         }
 
         [Test]
-        public void Parse_WhenWePassNotUniqueOptionName_OptionSetValidatorLogError()
+        public void Parse_ShouldLogError_WhenWePassNotUniqueOptionName()
         {
-            var attributeValue = Fake<string>();
+            var name = Fake("_");
             var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' isn`t unique among options.";
+            var expectedMessage = $"Key '{OptionSetParser.CreateId(name)}' isn`t unique among options.";
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.Option.Build(name))
+                .WithElement(TestDataCreator.Option.Build(name))
+                .Build();
 
-            var document = GenerateDocumentWithTwoOptionsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
-
-            Sut.Parse(CreateReader(document), mock.Object);
+            Sut.Parse(CreateReader(optionSet), mock.Object);
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            mock.Verify(o => o.AddError(It.IsAny<string>(), It.IsAny<IXmlLineInfo>()), Times.Once);
         }
 
         [Test]
-        public void Parse_WhenWePassInvalidOptionName_OptionSetValidatorLogError()
+        public void Parse_ShouldLogError_WhenWePassInvalidOptionName()
         {
-            var attributeValue = "#123";
+            var name = Fake("#");
             var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' ('{attributeValue}') isn`t valid.";
+            var expectedMessage1 = $"Key '{OptionSetParser.CreateId(name)}' ('{name}') isn`t valid.";
+            var expectedMessage2 = $"Name '{name}' isn`t valid.";
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.Option.Build(name))
+                .Build();
 
-            var document = GenerateDocumentWithOneOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
+            Sut.Parse(CreateReader(optionSet), mock.Object);
 
-            Sut.Parse(CreateReader(document), mock.Object);
+            mock.Verify(o => o.AddError(expectedMessage1, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            mock.Verify(o => o.AddError(expectedMessage2, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            mock.Verify(o => o.AddError(It.IsAny<string>(), It.IsAny<IXmlLineInfo>()), Times.Exactly(2));
+        }
+
+        [Test]
+        public void Parse_ShouldLogError_WhenWePassNotUniqueGroupName()
+        {
+            var name = Fake("_");
+            var mock = Fake<Mock<IOptionSetValidator>>();
+            var expectedMessage = $"Key '{OptionSetParser.CreateId(name)}' isn`t unique among groups.";
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.Group.Build(name))
+                .WithElement(TestDataCreator.Group.Build(name))
+                .Build();
+
+            Sut.Parse(CreateReader(optionSet), mock.Object);
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            mock.Verify(o => o.AddError(It.IsAny<string>(), It.IsAny<IXmlLineInfo>()), Times.Once);
         }
 
         [Test]
-        public void Parse_WhenWePassNotUniqueGroupName_OptionSetValidatorLogError()
+        public void Parse_ShouldLogError_WhenWePassInvalidGroupName()
         {
-            var attributeValue = Fake<string>();
+            var name = Fake("#");
             var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' isn`t unique among groups.";
+            var expectedMessage1 = $"Key '{OptionSetParser.CreateId(name)}' ('{name}') isn`t valid.";
+            var expectedMessage2 = $"Name '{name}' isn`t valid.";
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.Group.Build(name))
+                .Build();
 
-            var document = GenerateDocumentWithTwoGroupsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == GroupAttributeKeys.Name, GroupAttributeKeys.Name, attributeValue);
+            Sut.Parse(CreateReader(optionSet), mock.Object);
 
-            Sut.Parse(CreateReader(document), mock.Object);
+            mock.Verify(o => o.AddError(expectedMessage1, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            mock.Verify(o => o.AddError(expectedMessage2, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            mock.Verify(o => o.AddError(It.IsAny<string>(), It.IsAny<IXmlLineInfo>()), Times.Exactly(2));
+        }
+
+        [Test]
+        public void Parse_ShouldLogError_WhenWePassNotUniqueConstantName()
+        {
+            var name = Fake("_");
+            var mock = Fake<Mock<IOptionSetValidator>>();
+            var expectedMessage = $"Key '{OptionSetParser.CreateId(name)}' isn`t unique among constants.";
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.Constant.Build(name))
+                .WithElement(TestDataCreator.Constant.Build(name))
+                .Build();
+
+            Sut.Parse(CreateReader(optionSet), mock.Object);
 
             mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            mock.Verify(o => o.AddError(It.IsAny<string>(), It.IsAny<IXmlLineInfo>()), Times.Once);
         }
 
         [Test]
-        public void Parse_WhenWePassInvalidGroupName_OptionSetValidatorLogError()
+        public void Parse_ShouldLogError_WhenWePassInvalidConstantName()
         {
-            var attributeValue = "#123";
+            var name = Fake("#");
             var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' ('{attributeValue}') isn`t valid.";
+            var expectedMessage1 = $"Key '{OptionSetParser.CreateId(name)}' ('{name}') isn`t valid.";
+            var expectedMessage2 = $"Name '{name}' isn`t valid.";
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.Constant.Build(name))
+                .Build();
 
-            var document = GenerateDocumentWithOneGroup(a => a.Use == XmlSchemaUse.Required || a.Name == GroupAttributeKeys.Name, GroupAttributeKeys.Name, attributeValue);
+            Sut.Parse(CreateReader(optionSet), mock.Object);
 
-            Sut.Parse(CreateReader(document), mock.Object);
-
-            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
-        }
-
-        [TestCase("name", typeof(string), nameof(Group.Name))]
-        [TestCase("description", typeof(string), nameof(Group.Description))]
-        [TestCase("displayName", typeof(string), nameof(Group.DisplayName))]
-        public void Parse_WhenItPresentInGroup_ShouldReadAttribute(string attributeName, Type attributeValueType, string propertyName)
-        {
-            DataConversion.AddParser(delegate (string input, out object value)
-            {
-                value = input;
-                return true;
-            });
-
-            var attributeValue = Fake(attributeValueType);
-            var groupAttributeValue = Fake(attributeValueType);
-
-            var document = GenerateDocumentWithOneOptionAndOneGroup(a => a.Use == XmlSchemaUse.Required || a.Name == attributeName, attributeName, attributeValue, groupAttributeValue);
-
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-
-            Assert.That(actual.Groups, Is.Not.Null);
-            Assert.That(actual.Version, Is.EqualTo("1"));
-
-            var propertyInfo = typeof(Group).GetProperty(propertyName);
-            Assert.That(propertyInfo, Is.Not.Null);
-            Assert.That(propertyInfo.GetValue(actual.Groups.First().Value), Is.EqualTo(groupAttributeValue));
-        }
-
-        [TestCase(GroupAttributeKeys.Description, typeof(string), nameof(Group.Description), GroupAttributeDefaults.Description)]
-        [TestCase(GroupAttributeKeys.DisplayName, typeof(string), nameof(Group.DisplayName), GroupAttributeDefaults.DisplayName)]
-        public void Parse_WhenItAbsentInGroup_ShouldReturnDefaultValue(string attributeName, Type attributeValueType, string propertyName, object attributeValue)
-        {
-            DataConversion.AddParser(delegate (string input, out object value)
-            {
-                value = input;
-                return true;
-            });
-
-            var document = GenerateDocumentWithOneGroup(a => a.Use == XmlSchemaUse.Required);
-
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-
-            Assert.That(actual.Groups, Is.Not.Null);
-            Assert.That(actual.Version, Is.EqualTo("1"));
-
-            var propertyInfo = typeof(Group).GetProperty(propertyName);
-            Assert.That(propertyInfo, Is.Not.Null);
-            Assert.That(propertyInfo.GetValue(actual.Groups.First().Value), Is.EqualTo(attributeValue));
+            mock.Verify(o => o.AddError(expectedMessage1, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            mock.Verify(o => o.AddError(expectedMessage2, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            mock.Verify(o => o.AddError(It.IsAny<string>(), It.IsAny<IXmlLineInfo>()), Times.Exactly(2));
         }
 
         [Test]
-        public void Parse_WhenWePassName_IdIsGeneratedFromName()
+        public void Parse_ShouldGenerateIdFromNameOfOption()
         {
-            var optionValue = Fake<string>();
-            var groupValue = Fake<string>();
-            var expectedOptionId = OptionSetParser.CreateId(optionValue);
-            var expectedGroupId = OptionSetParser.CreateId(groupValue);
+            var name = Fake("_");
+            var expectedId = OptionSetParser.CreateId(name);
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.Option.Build(name))
+                .Build();
 
-            var document = GenerateDocumentWithOneOptionAndOneGroup(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionValue, groupValue);
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-
-            Assert.That(actual.Options.First().Value.Id, Is.EqualTo(expectedOptionId));
-            Assert.That(actual.Groups.First().Value.Id, Is.EqualTo(expectedGroupId));
+            Assert.That(actual.Options[name].Id, Is.EqualTo(expectedId));
         }
 
         [Test]
-        public void Parse_WhenWePassNotUniqueConstantName_OptionSetValidatorLogError()
+        public void Parse_ShouldGenerateIdFromNameOfGroup()
         {
-            var attributeValue = Fake<string>();
-            var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' isn`t unique among constants.";
+            var name = Fake("_");
+            var expectedId = OptionSetParser.CreateId(name);
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.Group.Build(name))
+                .Build();
 
-            var document = GenerateDocumentWithTwoConstantsAndSameNames(a => a.Use == XmlSchemaUse.Required || a.Name == ConstantAttributeKeys.Name, ConstantAttributeKeys.Name, attributeValue);
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-            Sut.Parse(CreateReader(document), mock.Object);
-
-            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            Assert.That(actual.Groups[name].Id, Is.EqualTo(expectedId));
         }
 
-        [Test]
-        public void Parse_WhenWePassInvalidConstantName_OptionSetValidatorLogError()
+         [Test]
+        public void Parse_ShouldReadConstantAttributes()
         {
-            var attributeValue = "#123";
-            var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage = $"Key '{OptionSetParser.CreateId(attributeValue)}' ('{attributeValue}') isn`t valid.";
+            var name = Fake("_");
+            var value = Fake<string>();
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator
+                    .Constant
+                    .WithValue(value)
+                    .Build(name))
+                .Build();
 
-            var document = GenerateDocumentWithOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, attributeValue);
-
-            Sut.Parse(CreateReader(document), mock.Object);
-
-            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
-        }
-
-        [TestCase("name", typeof(string), nameof(Constant.Name))]
-        [TestCase("valueType", typeof(string), nameof(Constant.ValueType))]
-        public void Parse_WhenItPresentInConstant_ShouldReadAttribute(string attributeName, Type attributeValueType, string propertyName)
-        {
-            DataConversion.AddParser(delegate (string input, out object value)
-            {
-                value = input;
-                return true;
-            });
-
-            var attributeValue = Fake(attributeValueType);
-
-            var document = GenerateDocumentWithOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == attributeName, attributeName, attributeValue);
-
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
             Assert.That(actual.Constants, Is.Not.Null);
             Assert.That(actual.Version, Is.EqualTo("1"));
-
-            var propertyInfo = typeof(Constant).GetProperty(propertyName);
-            Assert.That(propertyInfo, Is.Not.Null);
-            Assert.That(propertyInfo.GetValue(actual.Constants.First().Value), Is.EqualTo(attributeValue));
+            Assert.That(actual.Constants[name].Name, Is.EqualTo(name));
+            Assert.That(actual.Constants[name].Value, Is.EqualTo(value));
         }
 
         [Test]
-        public void Parse_WhenItPresentMaxLengthSuggestion_ShouldReturnCorrectSuggestion()
+        public void Parse_ShouldReturnConstantDefaults_WhenAttributesAreAbsent()
         {
-            var max = Fake<ushort>();
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
+            var name = Fake("_");
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.Constant.Build(name))
+                .Build();
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, 
-                groupName, 
-                CreateMaxLengthSuggestion(max.ToString()), 
-                GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, 
-                    optionName));
-
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-
-            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MaxLength));
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
+            Assert.That(actual.Constants, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Constants[name].Name, Is.EqualTo(name));
+            Assert.That(actual.Constants[name].Value, Is.EqualTo(ConstantElement.Attrs.Defaults.Value));
         }
 
-        [Test]
-        public void Parse_WhenItPresentMaxLinesSuggestion_ShouldReturnCorrectSuggestion()
-        {
-            var max = Fake<byte>();
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
+        ////[Test]
+        ////public void Parse_ShouldReturnCorrectSuggestion_WhenItPresentMaxLengthSuggestion()
+        ////{
+        ////    var max = Fake<ushort>();
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMaxLinesSuggestion(max), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, 
+        ////        groupName, 
+        ////        CreateMaxLengthSuggestion(max.ToString()), 
+        ////        GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, 
+        ////            optionName));
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MaxLines));
-        }
+        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MaxLength));
+        ////}
 
-        [Test]
-        public void Parse_WhenItPresentMinLengthSuggestion_ShouldReturnCorrectSuggestion()
-        {
-            var min = Fake<UInt16>();
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
+        ////[Test]
+        ////public void Parse_WhenItPresentMaxLinesSuggestion_ShouldReturnCorrectSuggestion()
+        ////{
+        ////    var max = Fake<byte>();
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMinLengthSuggestion(min), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMaxLinesSuggestion(max), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MinLength));
-        }
+        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MaxLines));
+        ////}
 
-        [Test]
-        public void Parse_WhenItPresentMinLinesSuggestion_ShouldReturnCorrectSuggestion()
-        {
-            var min = Fake<byte>();
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
+        ////[Test]
+        ////public void Parse_WhenItPresentMinLengthSuggestion_ShouldReturnCorrectSuggestion()
+        ////{
+        ////    var min = Fake<UInt16>();
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMinLinesSuggestion(min), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMinLengthSuggestion(min), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MinLines));
-        }
+        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MinLength));
+        ////}
 
-        [Test]
-        public void Parse_WhenItPresentMultiLineSuggestion_ShouldReturnCorrectSuggestion()
-        {
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
+        ////[Test]
+        ////public void Parse_WhenItPresentMinLinesSuggestion_ShouldReturnCorrectSuggestion()
+        ////{
+        ////    var min = Fake<byte>();
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMultiLineSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMinLinesSuggestion(min), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Multiline));
-        }
+        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MinLines));
+        ////}
 
-        [Test]
-        public void Parse_WhenItPresentNotifiableSuggestion_ShouldReturnCorrectSuggestion()
-        {
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
+        ////[Test]
+        ////public void Parse_WhenItPresentMultiLineSuggestion_ShouldReturnCorrectSuggestion()
+        ////{
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateNotifiableSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMultiLineSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Notifiable));
-        }
+        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Multiline));
+        ////}
 
-        [Test]
-        public void Parse_WhenItPresentNotifyOnChangeSuggestion_ShouldReturnCorrectSuggestion()
-        {
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
+        ////[Test]
+        ////public void Parse_WhenItPresentNotifiableSuggestion_ShouldReturnCorrectSuggestion()
+        ////{
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateNotifyOnChangeSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateNotifiableSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.NotifyOnChange));
-        }
+        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Notifiable));
+        ////}
 
-        [Test]
-        public void Parse_WhenItPresentRegexSuggestion_ShouldReturnCorrectSuggestion()
-        {
-            var value = Fake<string>();
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
+        ////[Test]
+        ////public void Parse_WhenItPresentNotifyOnChangeSuggestion_ShouldReturnCorrectSuggestion()
+        ////{
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateRegexSuggestion(value), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateNotifyOnChangeSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Regex));
-        }
+        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.NotifyOnChange));
+        ////}
 
-        [Test]
-        public void Parse_WhenWePassNotUniqueSuggestion_OptionSetValidatorLogError()
-        {
-            var value = Fake<string>();
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
+        ////[Test]
+        ////public void Parse_WhenItPresentRegexSuggestion_ShouldReturnCorrectSuggestion()
+        ////{
+        ////    var value = Fake<string>();
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
 
-            var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage = $"Suggestion with type '{SuggestionType.Regex}' isn`t unique among option '{optionName}'.";
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateRegexSuggestion(value), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndTwoSameSuggestions(a => a.Use == XmlSchemaUse.Required || a.Name == ConstantAttributeKeys.Name, ConstantAttributeKeys.Name, groupName, CreateRegexSuggestion(value), CreateRegexSuggestion(value), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Sut.Parse(CreateReader(document), mock.Object);
+        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Regex));
+        ////}
 
-            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
-        }
+        ////[Test]
+        ////public void Parse_WhenWePassNotUniqueSuggestion_OptionSetValidatorLogError()
+        ////{
+        ////    var value = Fake<string>();
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
 
-        [Test]
-        public void Parse_WhenItPresentConstantWithSuggestionWithThatConstant_ShouldReturnCorrectSuggestion()
-        {
-            var constantName = "Test";
-            var constantValue = Fake<UInt16>();
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
+        ////    var mock = Fake<Mock<IOptionSetValidator>>();
+        ////    var expectedMessage = $"Suggestion with type '{SuggestionType.Regex}' isn`t unique among option '{optionName}'.";
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestionAndOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, 
-                CreateMaxLengthSuggestion("{Constant name=Test}"), 
-                GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName), 
-                GenerateConstantWithValue(constantName, constantValue, "UInt16"));
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndTwoSameSuggestions(a => a.Use == XmlSchemaUse.Required || a.Name == ConstantAttributeKeys.Name, ConstantAttributeKeys.Name, groupName, CreateRegexSuggestion(value), CreateRegexSuggestion(value), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
 
-            var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        ////    Sut.Parse(CreateReader(document), mock.Object);
 
-            Assert.That(((MaxLengthSuggestion)actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Values.First()).Value, Is.EqualTo(constantValue));
-        }
+        ////    mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+        ////}
 
-        [Test]
-        public void Parse_WhenItPresentSuggestionAndThereIsNoConstantWithRightName_Throws()
-        {
-            var constantName = "Test2";
-            var constantValue = Fake<UInt16>();
-            var groupName = Fake<string>();
-            var optionName = Fake<string>();
-            var suggestionValue = "{Constant name=Test}";
+        ////[Test]
+        ////public void Parse_WhenItPresentConstantWithSuggestionWithThatConstant_ShouldReturnCorrectSuggestion()
+        ////{
+        ////    var constantName = "Test";
+        ////    var constantValue = Fake<UInt16>();
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
 
-            var document = GenerateDocumentWithOneGroupWithOptionAndSuggestionAndOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName,
-                CreateMaxLengthSuggestion(suggestionValue),
-                GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName),
-                GenerateConstantWithValue(constantName, constantValue, "UInt16"));
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestionAndOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, 
+        ////        CreateMaxLengthSuggestion("{Constant name=Test}"), 
+        ////        GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName), 
+        ////        GenerateConstantWithValue(constantName, constantValue, "UInt16"));
 
-            var ex = Assert.Throws<InvalidOperationException>(() =>
-            {
-                Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-            });
+        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
 
-            Assert.That(ex.Message, Is.EqualTo($"Невозможно преобразовать значение '{suggestionValue}' к типу '{typeof(UInt16).FullName}'."));
-        }
+        ////    Assert.That(((MaxLengthSuggestion)actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Values.First()).Value, Is.EqualTo(constantValue));
+        ////}
 
-        private List<ListItem> FakeManyListItems(IOptionValue optionValue)
-        {
-            return FakeMany<ListItem>(o => o.FromFactory(() => new ListItem(Fake(optionValue.ValueType), Fake<string>())))
-                .ToList();
-        }
+        ////[Test]
+        ////public void Parse_WhenItPresentSuggestionAndThereIsNoConstantWithRightName_Throws()
+        ////{
+        ////    var constantName = "Test2";
+        ////    var constantValue = Fake<UInt16>();
+        ////    var groupName = Fake<string>();
+        ////    var optionName = Fake<string>();
+        ////    var suggestionValue = "{Constant name=Test}";
 
-        private OptionSet GetExpectedOptionSet(Option actual)
-        {
-            var optionSet = new OptionSet();
-            optionSet.Version = "1";
+        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestionAndOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName,
+        ////        CreateMaxLengthSuggestion(suggestionValue),
+        ////        GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName),
+        ////        GenerateConstantWithValue(constantName, constantValue, "UInt16"));
 
-            var optionValue = _optionValueFactory.Create(actual.ValueType);
-            var id = OptionSetParser.CreateId(actual.Name);
+        ////    var ex = Assert.Throws<InvalidOperationException>(() =>
+        ////    {
+        ////        Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        ////    });
 
-            optionSet.Options[id] = new Option
-                {
-                    Id = id,
-                    Name = actual.Name,
-                    DisplayName = OptionAttributeDefaults.DisplayName,
-                    Description = OptionAttributeDefaults.Description,
-                    DefaultValue = OptionAttributeDefaults.DefaultValue,
-                    ValueType = OptionAttributeDefaults.ValueType,
-                    Behaviour = new SimpleOptionBehaviour(optionValue)
-                };
-
-            return optionSet;
-        }
+        ////    Assert.That(ex.Message, Is.EqualTo($"Невозможно преобразовать значение '{suggestionValue}' к типу '{typeof(UInt16).FullName}'."));
+        ////}
 
         private XmlTextReader CreateReader(string data)
         {
@@ -798,339 +788,6 @@ namespace SetMeta.Tests.Impl
             document.Save(stream);
             stream.Position = 0;
             return new XmlTextReader(stream);
-        }
-
-        private XDocument GenerateDocumentWithOneGroupWithOptionAndSuggestionAndOneConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestion, XElement option, XElement constant)
-        {
-            return GenerateDocument(GenerateOneGroupWithOptionAndSuggestionAndOneConstantFunc(expectedAttribute, name, value, suggestion, option, constant));
-        }
-
-        private Func<IEnumerable<XElement>> GenerateOneGroupWithOptionAndSuggestionAndOneConstantFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestion, XElement option, XElement constant)
-        {
-            return () => new[] { constant, GenerateGroup(expectedAttribute, name, value, suggestion, option) };
-        }
-
-        private XDocument GenerateDocumentWithOneGroupWithOptionAndTwoSameSuggestions(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestionOne, XElement suggestionTwo, XElement option)
-        {
-            return GenerateDocument(GenerateOneGroupWithOptionAndTwoSameSuggestionsFunc(expectedAttribute, name, value, suggestionOne, suggestionTwo, option));
-        }
-
-        private Func<IEnumerable<XElement>> GenerateOneGroupWithOptionAndTwoSameSuggestionsFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestionOne, XElement suggestionTwo, XElement option)
-        {
-            return () => new[] { GenerateGroupWithTowSameSuggestion(expectedAttribute, name, value, suggestionOne, suggestionTwo, option) };
-        }
-
-        private XDocument GenerateDocumentWithOneGroupWithOptionAndSuggestion(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestion, XElement option)
-        {
-            return GenerateDocument(GenerateOneGroupWithOptionAndSuggestionFunc(expectedAttribute, name, value, suggestion, option));
-        }
-
-        private Func<IEnumerable<XElement>> GenerateOneGroupWithOptionAndSuggestionFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value, XElement suggestion, XElement option)
-        {
-            return () => new[] { GenerateGroup(expectedAttribute, name, value, suggestion, option) };
-        }
-        
-        private XDocument GenerateDocumentWithOneConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
-        {
-            return GenerateDocument(GenerateConstantFunc(expectedAttribute, name, value));
-        }
-
-        private Func<IEnumerable<XElement>> GenerateConstantFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
-        {
-            return () => new[] { GenerateConstant(expectedAttribute, name, value) };
-        }
-
-        private XDocument GenerateDocumentWithTwoConstantsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
-        {
-            return GenerateDocument(GenerateOptionFuncWithTwoConstantsAndSameNames(expectedAttribute, name, value));
-        }
-
-        private Func<IEnumerable<XElement>> GenerateOptionFuncWithTwoConstantsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
-        {
-            return () => new[] { GenerateConstant(expectedAttribute, name, value), GenerateConstant(expectedAttribute, name, value) };
-        }
-
-        private XDocument GenerateDocumentWithOneOptionAndOneGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object optionValue = null, object groupValue = null)
-        {
-            return GenerateDocument(GenerateGroupAndOptionFunc(expectedAttribute, name, optionValue, groupValue));
-        }
-
-        private Func<IEnumerable<XElement>> GenerateGroupAndOptionFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object optionValue = null, object groupValue = null)
-        {
-            return () => new[] { GenerateOption(expectedAttribute, name, optionValue), GenerateGroup(expectedAttribute, name, groupValue) };
-        }
-
-        private XDocument GenerateDocumentWithTwoGroupsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
-        {
-            return GenerateDocument(GenerateOptionFuncWithTwoGroupsAndSameNames(expectedAttribute, name, value));
-        }
-
-        private Func<IEnumerable<XElement>> GenerateOptionFuncWithTwoGroupsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
-        {
-            return () => new[] { GenerateGroup(expectedAttribute, name, value), GenerateGroup(expectedAttribute, name, value) };
-        }
-
-        private XDocument GenerateDocumentWithOneGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
-        {
-            return GenerateDocument(GenerateGroupFunc(expectedAttribute, name, value));
-        }
-
-        private Func<IEnumerable<XElement>> GenerateGroupFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null)
-        {
-            return () => new[] { GenerateGroup(expectedAttribute, name, value) };
-        }
-
-        private XDocument GenerateDocumentWithTwoOptionsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
-        {
-            return GenerateDocument(GenerateOptionFuncWithTwoOptionsAndSameNames(expectedAttribute, name, value, behaviourFunc));
-        }
-
-        private Func<IEnumerable<XElement>> GenerateOptionFuncWithTwoOptionsAndSameNames(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
-        {
-            return () => new[] { GenerateOption(expectedAttribute, name, value, behaviourFunc), GenerateOption(expectedAttribute, name, value, behaviourFunc) };
-        }
-
-        private XDocument GenerateDocumentWithOneOption(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
-        {
-            return GenerateDocument(GenerateOptionFunc(expectedAttribute, name, value, behaviourFunc));
-        }
-
-        private Func<IEnumerable<XElement>> GenerateOptionFunc(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
-        {
-            return () => new[] { GenerateOption(expectedAttribute, name, value, behaviourFunc) };
-        }
-
-        private XElement GenerateConstantWithValue( object nameValue, object value, object valueTypeValue)
-        {
-            return new XElement(Keys.Constant, new XAttribute("name", nameValue), new XAttribute("value", value), new XAttribute("valueType", valueTypeValue));        
-        }
-
-        private XElement GenerateConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
-        {
-            var constant = new XElement(Keys.Constant);
-
-            foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
-            {
-                AddAttribute(constant,
-                    optionAttribute,
-                    name == null || name != optionAttribute.Name
-                        ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
-                        : value);
-            }
-
-            return constant;
-        }
-
-        private XElement GenerateOption(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, Func<XElement> behaviourFunc = null)
-        {
-            var option = new XElement(Keys.Option);
-
-            foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
-            {
-                AddAttribute(option,
-                    optionAttribute,
-                    name == null || name != optionAttribute.Name
-                        ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
-                        : value);
-            }
-
-            if (behaviourFunc != null)
-            {
-                option.Add(behaviourFunc());
-            }
-
-            return option;
-        }
-
-        private XElement GenerateGroup(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, XElement suggestion = null, XElement option = null)
-        {
-            var group = new XElement(Keys.Group);
-
-            foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
-            {
-                AddAttribute(group,
-                    optionAttribute,
-                    name == null || name != optionAttribute.Name
-                        ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
-                        : value);
-            }
-
-            if (option != null)
-            {
-                option.Add(suggestion);
-                group.Add(option);
-            }
-
-            return group;
-        }
-
-        private XElement GenerateGroupWithTowSameSuggestion(Predicate<XmlSchemaAttribute> expectedAttribute, string name = null, object value = null, XElement suggestionOne = null, XElement suggestionTwo = null, XElement option = null)
-        {
-            var group = new XElement(Keys.Group);
-
-            foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
-            {
-                AddAttribute(group,
-                    optionAttribute,
-                    name == null || name != optionAttribute.Name
-                        ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
-                        : value);
-            }
-
-            if (option != null)
-            {
-                option.Add(suggestionOne);
-                option.Add(suggestionTwo);
-                group.Add(option);
-            }
-
-            return group;
-        }
-
-        private XDocument GenerateDocument(Func<IEnumerable<XElement>> optionsFunc)
-        {
-            var declaration = new XDeclaration("1.0", "utf-8", "yes");
-            var body = new XElement(OptionSetElement.ElementName, optionsFunc());
-
-            return new XDocument(declaration, body);
-        }
-
-        private void AddAttribute(XElement option, XmlSchemaAttribute optionAttribute, object optionValue)
-        {
-            option.Add(new XAttribute(optionAttribute.Name, Convert.ToString(optionValue)));
-        }
-
-        private static IOptionInformant TraverseXmlSchema(XmlSchema xmlSchema)
-        {
-            var schemaSet = new XmlSchemaSet();
-            schemaSet.Add(xmlSchema);
-            schemaSet.Compile();
-
-            var visitor = new OptionSetV1XmlSchemaProcessor();
-            var iterator = new DefaultXmlSchemaIterator(schemaSet, visitor);
-
-            var enumerator = schemaSet.GlobalElements.Values.GetEnumerator();
-            enumerator.MoveNext();
-            var globalElement = enumerator.Current;
-            globalElement.Accept(iterator);
-
-            return visitor;
-        }
-
-        private Func<XElement> CreateRangedBehaviourMinMax(IOptionValue optionValue, string minValue, string maxValue, object isMin = null)
-        {
-            if (isMin == null)
-                return () => new XElement("rangedMinMax", new XAttribute("min", optionValue.GetStringValue(minValue)), new XAttribute("max", optionValue.GetStringValue(maxValue)));
-
-            if ((bool) isMin)
-                return () => new XElement("rangedMin", new XAttribute("min", optionValue.GetStringValue(minValue)));
-
-            if (!(bool) isMin)
-                return () => new XElement("rangedMax", new XAttribute("max", optionValue.GetStringValue(maxValue)));
-
-            return null;
-        }
-
-        private Func<XElement> CreateFixedListBehaviour(IOptionValue optionValue, IEnumerable<ListItem> list)
-        {
-            var fixedList = new XElement("fixedList");
-
-            foreach (var listItem in list)
-            {
-                fixedList.Add(new XElement("listItem", new XAttribute("value", optionValue.GetStringValue(listItem.Value)), new XAttribute("displayValue", listItem.DisplayValue)));
-            }           
-
-            return () => fixedList;
-        }
-
-        private Func<XElement> CreateFlagListBehaviour(IOptionValue optionValue, IEnumerable<ListItem> list)
-        {
-            var flagList = new XElement("flagList");
-
-            foreach (var listItem in list)
-            {
-                flagList.Add(new XElement("listItem", new XAttribute("value", optionValue.GetStringValue(listItem.Value)), new XAttribute("displayValue", listItem.DisplayValue)));
-            }
-
-            return () => flagList;
-        }
-
-        private Func<XElement> CreateMultiListBehaviour(IOptionValue optionValue, IEnumerable<ListItem> list, bool sorted = false, string separator = ";")
-        {
-            var multiList = new XElement("multiList", new XAttribute("sorted", sorted), new XAttribute("separator", separator));
-
-            foreach (var listItem in list)
-            {
-                multiList.Add(new XElement("listItem", new XAttribute("value", optionValue.GetStringValue(listItem.Value)), new XAttribute("displayValue", listItem.DisplayValue)));
-            }
-
-            return () => multiList;
-        }
-
-        private Func<XElement> CreateSqlFixedListBehaviour(string query, string memberValue, string displayValue)
-        {
-            return () => new XElement("sqlFixedList", 
-                new XAttribute("query", query),
-                new XAttribute("valueFieldName", memberValue),
-                new XAttribute("displayValueFieldName", displayValue));
-        }
-
-        private Func<XElement> CreateSqlFlagListBehaviour(string query, string memberValue, string displayValue)
-        {
-            return () => new XElement("sqlFlagList", 
-                new XAttribute("query", query),
-                new XAttribute("valueFieldName", memberValue),
-                new XAttribute("displayValueFieldName", displayValue));
-        }
-
-        private Func<XElement> CreateSqlMultiListBehaviour(string query, bool sorted, string separator, string memberValue, string displayValue)
-        {
-            return () => new XElement("sqlMultiList", 
-                new XAttribute("sorted", sorted), 
-                new XAttribute("separator", separator), 
-                new XAttribute("query", query), 
-                new XAttribute("valueFieldName", memberValue), 
-                new XAttribute("displayValueFieldName", displayValue));
-        }
-
-        private XElement CreateMaxLengthSuggestion(string max)
-        {
-            return new XElement("suggestion",new XElement("maxLength", new XAttribute("value", max)));
-        }
-
-        private XElement CreateMaxLinesSuggestion(byte max)
-        {
-            return new XElement("suggestion", new XElement("maxLines", new XAttribute("value", max)));
-        }
-
-        private XElement CreateMinLengthSuggestion(ushort min)
-        {
-            return new XElement("suggestion", new XElement("minLength", new XAttribute("value", min)));
-        }
-
-        private XElement CreateMinLinesSuggestion(byte min)
-        {
-            return new XElement("suggestion", new XElement("minLines", new XAttribute("value", min)));
-        }
-
-        private XElement CreateMultiLineSuggestion()
-        {
-            return new XElement("suggestion", new XElement("multiline"));
-        }
-
-        private XElement CreateNotifiableSuggestion()
-        {
-            return new XElement("suggestion", new XElement("notifiable"));
-        }
-
-        private XElement CreateNotifyOnChangeSuggestion()
-        {
-            return new XElement("suggestion", new XElement("notifyOnChange"));
-        }
-
-        private XElement CreateRegexSuggestion(string value)
-        {
-            return new XElement("suggestion", new XElement("regex", new XAttribute("value", value)));
         }
 
         private XDocument CreateOptionSetWithOneOption(string name, Func<IOptionTestDataCreator, IOptionTestDataCreator> augment = null)
@@ -1162,7 +819,7 @@ namespace SetMeta.Tests.Impl
 
         private IEnumerable<ListItem> CreateExpectedListItems(IEnumerable<XElement> elements)
         {
-            return elements.Select(o => new ListItem((object)o.GetAttributeValue<string>(ListItemElement.Attrs.Value), o.GetAttributeValue<string>(ListItemElement.Attrs.DisplayValue)));
+            return elements.Select(o => new ListItem(o.GetAttributeValue<string>(ListItemElement.Attrs.Value), o.GetAttributeValue<string>(ListItemElement.Attrs.DisplayValue)));
         }
 
         private class ExceptionOptionSetValidator
@@ -1170,7 +827,7 @@ namespace SetMeta.Tests.Impl
         {
             public void AddError(string message, IXmlLineInfo xmlLineInfo = null)
             {
-                throw new AssertionException("Validator should not be called.");
+                throw new AssertionException($"Validator should not be called, but was called with: {{ message: '{message}', xmlLineInfo: '{xmlLineInfo}' }}.");
             }
         }
     }

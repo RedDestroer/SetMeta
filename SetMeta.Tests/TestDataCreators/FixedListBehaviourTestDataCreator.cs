@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using SetMeta.Util;
-using FixedListElement = SetMeta.Entities.OptionSetElement.OptionElement.FixedListElement;
+using FixedListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.FixedListElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {

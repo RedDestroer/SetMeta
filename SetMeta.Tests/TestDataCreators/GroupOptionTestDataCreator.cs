@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Linq;
-using OptionElement = SetMeta.Entities.OptionSetElement.GroupElement.OptionElement;
+using OptionElement = SetMeta.XmlKeys.OptionSetElement.GroupElement.OptionElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {

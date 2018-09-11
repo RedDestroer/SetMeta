@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using SetMeta.Util;
-using MultiListElement = SetMeta.Entities.OptionSetElement.OptionElement.MultiListElement;
+using MultiListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.MultiListElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {

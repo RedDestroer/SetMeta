@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using SqlFlagListElement = SetMeta.Entities.OptionSetElement.OptionElement.SqlFlagListElement;
+using SqlFlagListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlFlagListElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {

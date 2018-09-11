@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using SetMeta.Util;
-using FlagListElement = SetMeta.Entities.OptionSetElement.OptionElement.FlagListElement;
+using FlagListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.FlagListElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {

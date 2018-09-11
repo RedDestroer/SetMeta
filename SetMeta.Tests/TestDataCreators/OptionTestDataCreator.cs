@@ -1,5 +1,5 @@
 ﻿using System.Xml.Linq;
-using OptionElement = SetMeta.Entities.OptionSetElement.OptionElement;
+using OptionElement = SetMeta.XmlKeys.OptionSetElement.OptionElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {

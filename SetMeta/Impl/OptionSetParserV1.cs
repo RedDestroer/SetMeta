@@ -10,10 +10,10 @@ using SetMeta.Entities.Behaviours;
 using SetMeta.Entities.Suggestions;
 using SetMeta.Util;
 using Group = SetMeta.Entities.Group;
-using OptionElement = SetMeta.Entities.OptionSetElement.OptionElement;
-using ConstantElement = SetMeta.Entities.OptionSetElement.ConstantElement;
-using GroupElement = SetMeta.Entities.OptionSetElement.GroupElement;
-using SuggestionElement = SetMeta.Entities.OptionSetElement.SuggestionElement;
+using OptionElement = SetMeta.XmlKeys.OptionSetElement.OptionElement;
+using ConstantElement = SetMeta.XmlKeys.OptionSetElement.ConstantElement;
+using GroupElement = SetMeta.XmlKeys.OptionSetElement.GroupElement;
+using SuggestionElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement;
 
 namespace SetMeta.Impl
 {
@@ -70,12 +70,12 @@ namespace SetMeta.Impl
 
                 if (matchesName.Count > 0)
                 {
-                    _optionSetValidator.AddError($"Name {value} isn`t valid.", root);
+                    _optionSetValidator.AddError($"Name '{value}' isn`t valid.", root);
                 }              
             }
             else
             {
-                _optionSetValidator.AddError($"Name {value} isn`t valid.", root);
+                _optionSetValidator.AddError($"Name '{value}' isn`t valid.", root);
             }
 
             return value;
@@ -294,8 +294,7 @@ namespace SetMeta.Impl
             var constant = new Constant();
 
             constant.Name = CheckName(root, ConstantElement.Attrs.Name);
-            constant.ValueType = TryGetMandatoryAttributeValue<string>(root, ConstantElement.Attrs.ValueType);
-            constant.Value = TryGetMandatoryAttributeValue<string>(root, ConstantElement.Attrs.Value);
+            constant.Value = ReplaceConstants(root.TryGetAttributeValue(ConstantElement.Attrs.Value, ConstantElement.Attrs.Defaults.Value));
 
             return constant;
         }
@@ -368,7 +367,7 @@ namespace SetMeta.Impl
             if (defaultValueElement != null)
             {
                 if (root.IsAttributeExists(OptionElement.Attrs.DefaultValue))
-                    _optionSetValidator.AddError($"Option {option.Name} has two defaultValue's.", root);
+                    _optionSetValidator.AddError($"Option '{option.Name}' has two defaultValue's.", root);
 
                 var dataElement = defaultValueElement.Elements().First();
                 if (dataElement.NodeType != XmlNodeType.CDATA)
@@ -383,7 +382,7 @@ namespace SetMeta.Impl
         private T TryGetMandatoryAttributeValue<T>(XElement root, string name)
         {
             if (!root.TryGetAttributeValue(name, out T value))
-                _optionSetValidator.AddError($"Mandatory attribute {name} not found.", root);
+                _optionSetValidator.AddError($"Mandatory attribute '{name}' not found.", root);
 
             return value;
         }
