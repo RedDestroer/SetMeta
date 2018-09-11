@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using SetMeta.Abstract;
 using SetMeta.Impl;
+using SetMeta.Tests.Util;
 
 namespace SetMeta.Tests.Impl
 {
@@ -9,6 +10,12 @@ namespace SetMeta.Tests.Impl
     internal class OptionValueConverterTestFixture
         : SutBase<OptionValueConverter<string>, IOptionValueConverter<string>>
     {
+        [Test]
+        public void ShouldNotAcceptNullArgumentsForAllConstructors()
+        {
+            ShouldNotAcceptNullArgumentsForAllConstructorsInner();
+        }
+
         [Test]
         public void GetValue_WhenWePassString_ThereShouldBeNoException()
         {
@@ -73,12 +80,7 @@ namespace SetMeta.Tests.Impl
         [Test]
         public void GetStringValue_WhenFormatProviderIsNull_ThrowException()
         {
-            void Delegate()
-            {
-                Sut.GetStringValue(Fake<string>(), null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "formatProvider");
+            Sut.ShouldThrowArgumentNullException(o => o.GetStringValue(Fake<string>(), null), "formatProvider");
         }
 
         [TestCase("", "ru-RU")]

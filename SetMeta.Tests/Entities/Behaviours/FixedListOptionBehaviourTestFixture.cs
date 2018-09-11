@@ -12,7 +12,7 @@ namespace SetMeta.Tests.Entities.Behaviours
         : AutoFixtureBase
     {
         [Test]
-        public void FixedListOptionBehaviour_ConstructorNullChecks()
+        public void ShouldNotAcceptNullArgumentsForAllConstructors()
         {
             typeof(FixedListOptionBehaviour).ShouldNotAcceptNullConstructorArguments(AutoFixture, BindingFlags.Instance | BindingFlags.NonPublic);
         }

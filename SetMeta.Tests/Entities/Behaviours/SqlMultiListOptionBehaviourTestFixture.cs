@@ -11,7 +11,7 @@ namespace SetMeta.Tests.Entities.Behaviours
         : AutoFixtureBase
     {
         [Test]
-        public void SqlMultiListOptionBehaviour_WhenWePassNullOptionValue_ThrowException()
+        public void ShouldNotAcceptNullArgumentsForAllConstructors()
         {
             typeof(SqlMultiListOptionBehaviour).ShouldNotAcceptNullConstructorArguments(AutoFixture, BindingFlags.Instance | BindingFlags.NonPublic);
         }

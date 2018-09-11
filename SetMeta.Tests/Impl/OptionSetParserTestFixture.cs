@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Xml;
 using Moq;
 using NUnit.Framework;
@@ -19,14 +21,9 @@ namespace SetMeta.Tests.Impl
         }
 
         [Test]
-        public void Create_WhenWePassStringNull_ThrowException()        
+        public void ShouldNotAcceptNullArgumentsForAllMethodsInner()
         {
-            void Delegate()
-            {
-                OptionSetParser.Create((string)null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "version");
+            typeof(OptionSetParser).ShouldNotAcceptNullArgumentsForAllMethods(AutoFixture, mi => mi.Name != nameof(OptionSetParser.CreateId), BindingFlags.Public | BindingFlags.Static);
         }
 
         [Test]
@@ -40,27 +37,6 @@ namespace SetMeta.Tests.Impl
             Assert.That(ex.Message, Is.EqualTo($"Can't create '{nameof(OptionSetParser)}' of given version ''."));
         }
 
-        [Test]
-        public void Create_WhenWePassStreamNull_ThrowException()
-        {
-            void Delegate()
-            {
-                OptionSetParser.Create((Stream)null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "stream");
-        }
-
-        [Test]
-        public void Create_WhenWePassReaderNull_ThrowException()
-        {
-            void Delegate()
-            {
-                OptionSetParser.Create((XmlTextReader)null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "reader");
-        }
 
         [Test]
         public void Parse_WhenNullStreamIsPassed_Throws()
@@ -68,12 +44,7 @@ namespace SetMeta.Tests.Impl
             var sut = Dep<Mock<OptionSetParser>>()
                 .Object;
 
-            void Delegate()
-            {
-                sut.Parse((Stream)null, Fake<IOptionSetValidator>());
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "stream");
+            sut.ShouldThrowArgumentNullException(o => o.Parse((Stream)null, Fake<IOptionSetValidator>()), "stream");
         }
 
         [Test]
@@ -82,12 +53,7 @@ namespace SetMeta.Tests.Impl
             var sut = Dep<Mock<OptionSetParser>>()
                 .Object;
 
-            void Delegate()
-            {
-                sut.Parse(Fake<Stream>(), null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionSetValidator");
+            sut.ShouldThrowArgumentNullException(o => o.Parse(Fake<Stream>(), null), "optionSetValidator");
         }
 
         [Test]
@@ -114,12 +80,7 @@ namespace SetMeta.Tests.Impl
             var sut = Dep<Mock<OptionSetParser>>()
                 .Object;
 
-            void Delegate()
-            {
-                sut.Parse((string)null, Fake<IOptionSetValidator>());
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "data");
+            sut.ShouldThrowArgumentNullException(o => o.Parse((string)null, Fake<IOptionSetValidator>()), "data");
         }
 
         [Test]
@@ -128,12 +89,7 @@ namespace SetMeta.Tests.Impl
             var sut = Dep<Mock<OptionSetParser>>()
                 .Object;
 
-            void Delegate()
-            {
-                sut.Parse(Fake<string>(), null);
-            }
-
-            AssertEx.ThrowsArgumentNullException(Delegate, "optionSetValidator");
+            sut.ShouldThrowArgumentNullException(o => o.Parse(Fake<string>(), null), "optionSetValidator");
         }
 
         [Test]

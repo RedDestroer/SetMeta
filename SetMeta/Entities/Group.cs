@@ -19,17 +19,4 @@ namespace SetMeta.Entities
         public IDictionary<string, Group> Groups { get; }
         public IDictionary<string, IDictionary<SuggestionType, Suggestion>> Suggestions { get; }
     }
-
-    internal static class GroupAttributeKeys
-    {
-        public const string Name = "name";
-        public const string DisplayName = "displayName";
-        public const string Description = "description";
-    }
-
-    internal static class GroupAttributeDefaults
-    {
-        public const string DisplayName = null;
-        public const string Description = null;
-    }
 }

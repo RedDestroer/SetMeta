@@ -1,7 +1,7 @@
 ﻿namespace SetMeta.Entities.Suggestions
 {
     public class MaxLengthSuggestion
-        :Suggestion
+        : Suggestion
     {
         /// <summary>
         /// Тип предложения
