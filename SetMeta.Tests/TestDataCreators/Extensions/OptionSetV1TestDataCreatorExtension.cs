@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
+using SetMeta.Tests.TestDataCreators.Abstract;
 
-namespace SetMeta.Tests.TestDataCreators
+namespace SetMeta.Tests.TestDataCreators.Extensions
 {
     public static class OptionSetV1TestDataCreatorExtension
     {

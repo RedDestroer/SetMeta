@@ -1,4 +1,4 @@
-﻿namespace SetMeta.Tests.TestDataCreators
+﻿namespace SetMeta.Tests.TestDataCreators.Abstract
 {
     public interface ISetMetaTestDataCreator
     {

@@ -1,4 +1,6 @@
-﻿namespace SetMeta.Tests.TestDataCreators
+﻿using SetMeta.Tests.TestDataCreators.Abstract;
+
+namespace SetMeta.Tests.TestDataCreators
 {
     public class SetMetaTestDataCreator
         : ISetMetaTestDataCreator

@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace SetMeta.Tests.TestDataCreators
+namespace SetMeta.Tests.TestDataCreators.Abstract
 {
     public interface ISqlFlagListBehaviourTestDataCreator
     {

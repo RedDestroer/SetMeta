@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
+using SetMeta.Tests.TestDataCreators.Abstract;
 
-namespace SetMeta.Tests.TestDataCreators
+namespace SetMeta.Tests.TestDataCreators.Extensions
 {
     public static class OptionTestDataCreatorExtension
     {
@@ -10,7 +11,7 @@ namespace SetMeta.Tests.TestDataCreators
             tdc.WithDescription(autoFixture.Fake<string>());
             tdc.WithValueType(autoFixture.Fake<OptionValueType>());
 
-            return tdc.Build(autoFixture.Fake<string>());
+            return tdc.Build(autoFixture.Fake("_"));
         }
 
         public static XElement BuildNew(this IOptionTestDataCreator tdc, AutoFixtureBase autoFixture, XElement element)
@@ -18,7 +19,7 @@ namespace SetMeta.Tests.TestDataCreators
             tdc.WithValueType(autoFixture.Fake<OptionValueType>());
             tdc.WithElement(element);
 
-            return tdc.Build(autoFixture.Fake<string>());
+            return tdc.Build(autoFixture.Fake("_"));
         }
     }
 }

@@ -5,6 +5,7 @@ using AutoFixture.Dsl;
 using AutoFixture.Kernel;
 using NUnit.Framework;
 using SetMeta.Tests.TestDataCreators;
+using SetMeta.Tests.TestDataCreators.Abstract;
 
 namespace SetMeta.Tests
 {
