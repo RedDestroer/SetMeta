@@ -4,12 +4,12 @@
         : Suggestion
     {
         /// <summary>
-        /// Тип предложения
+        /// Suggestion type
         /// </summary>
         public override SuggestionType SuggestionType => SuggestionType.MinLines;
 
         /// <summary>
-        /// Желаемое минимальное количество строк
+        /// Desired minimum number of lines 
         /// </summary>
         public byte Value { get; set; }
     }

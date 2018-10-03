@@ -1,48 +1,48 @@
 ﻿namespace SetMeta
 {
     /// <summary>
-    /// Тип предложения. Нескольких предложений с одним типом для одной группы настроек или настройки быть не может
+    /// Suggestion type. There can't be several suggestion with one type for one setting group or setting
     /// </summary>
     public enum SuggestionType
         : byte
     {
         /// <summary>
-        /// Желаемая максимальная длина поля ввода
+        /// Desired maximum input field length
         /// </summary>
         MaxLength = 0,
 
         /// <summary>
-        /// Поле ввода должно быть многострочным
+        /// Input field must be multi-lined
         /// </summary>
         Multiline = 1,
 
         /// <summary>
-        /// Минимальное количество строк многострочного поля
+        /// Minimum number of lines of multi-line field
         /// </summary>
         MinLines = 2,
 
         /// <summary>
-        /// Максимальное количество строк многострочного поля
+        /// Maximum number of lines of multi-line field
         /// </summary>
         MaxLines = 3,
 
         /// <summary>
-        /// Регулярное выражение для проверки значения поля
+        /// Regular expression to check the field value
         /// </summary>
         Regex = 4,
 
         /// <summary>
-        /// Уведомлять ли друге поля об изменении этого поля
+        /// Whether to notify fields about changes to this field.
         /// </summary>
         NotifyOnChange = 5,
 
         /// <summary>
-        /// Получать ли уведомления от других полей об их изменении
+        /// Whether to receive notifications from other fields about changes
         /// </summary>
         Notifiable = 6,
 
         /// <summary>
-        /// Желаемая минимальная длина поля ввода
+        /// Desired minimum input field length
         /// </summary>
         MinLength = 7,
     }

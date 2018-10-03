@@ -4,17 +4,17 @@
         : Suggestion
     {
         /// <summary>
-        /// Тип предложения
+        /// Suggestion type
         /// </summary>
         public override SuggestionType SuggestionType => SuggestionType.Regex;
 
         /// <summary>
-        /// Регулярное выражение
+        /// Regular expression
         /// </summary>
         public string Value { get; set; }
 
         /// <summary>
-        /// Валидационное сообщение, если значение не соответствует регулярному выражению
+        /// Validation message, if value does not match regular expression
         /// </summary>
         public string Validation { get; set; }
     }

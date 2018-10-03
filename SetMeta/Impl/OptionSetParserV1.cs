@@ -338,11 +338,6 @@ namespace SetMeta.Impl
             return !constants.ContainsKey(id);
         }
 
-        private bool KeyIsUnique(string id, IDictionary<string, Constant> constants)
-        {
-            return !constants.ContainsKey(id);
-        }
-
         private bool KeyIsValid(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -441,8 +436,8 @@ namespace SetMeta.Impl
                     break;
                 case "multiList":
                 {
-                    bool sorted = ReplaceConstants<bool>(root, "sorted");
-                    string separator = ReplaceConstants<string>(root, "separator");
+                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue<bool>("sorted", false).ToString()));
+                    string separator = ReplaceConstants(root.TryGetAttributeValue<string>("separator", ";"));
                     optionBehaviour = CreateMultiListBehaviour(root, optionValue, sorted, separator);
                 }
                     break;

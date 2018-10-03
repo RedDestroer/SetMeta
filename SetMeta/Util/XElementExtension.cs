@@ -11,7 +11,7 @@ namespace SetMeta.Util
             if (name == null) throw new ArgumentNullException(nameof(name));
 
             if (!TryGetNode(element, name, out var answer))
-                throw new InvalidOperationException($"Не найдена нода '{name}'.");
+                throw new InvalidOperationException($"Not found node '{name}'.");
 
             return answer;
         }
@@ -21,7 +21,7 @@ namespace SetMeta.Util
             if (name == null) throw new ArgumentNullException(nameof(name));
 
             if (!TryGetNode(element, name, attributeName, attributeValue, out var answer))
-                throw new InvalidOperationException($"Не найдена нода '{name}' содержащая аттрибут '{attributeName}' со значением '{attributeValue}'.");
+                throw new InvalidOperationException($"Not found node '{name}' containing attribute '{attributeName}' with value '{attributeValue}'.");
 
             return answer;
         }
@@ -179,7 +179,7 @@ namespace SetMeta.Util
             if (name == null) throw new ArgumentNullException(nameof(name));
 
             if (!TryGetAttribute(root, name, out var attribute))
-                throw new InvalidOperationException($"Не удалось найти ноду с именем '{name}'.");
+                throw new InvalidOperationException($"Not found node with name '{name}'.");
 
             return DataConversion.Convert<T>(attribute.Value);
         }

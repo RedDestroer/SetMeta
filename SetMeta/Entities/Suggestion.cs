@@ -1,12 +1,12 @@
 ﻿namespace SetMeta.Entities
 {
     /// <summary>
-    /// Предложение по группе настроек или настройке, которые хотелось бы чтобы учёл генератор
+    /// Proposal for a group of settings or setting that would be great to take into account the generator
     /// </summary>
     public abstract class Suggestion
     {
         /// <summary>
-        /// Тип предложения
+        /// Suggestion type
         /// </summary>
         public abstract SuggestionType SuggestionType { get; }
     }
