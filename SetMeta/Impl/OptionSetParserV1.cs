@@ -10,6 +10,10 @@ using SetMeta.Entities.Behaviours;
 using SetMeta.Entities.Suggestions;
 using SetMeta.Util;
 using Group = SetMeta.Entities.Group;
+using OptionElement = SetMeta.XmlKeys.OptionSetElement.OptionElement;
+using ConstantElement = SetMeta.XmlKeys.OptionSetElement.ConstantElement;
+using GroupElement = SetMeta.XmlKeys.OptionSetElement.GroupElement;
+using SuggestionElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement;
 
 namespace SetMeta.Impl
 {
@@ -52,6 +56,31 @@ namespace SetMeta.Impl
             return optionSet;
         }
 
+        private string CheckName(XElement root, string name)
+        {
+            var value = TryGetMandatoryAttributeValue<string>(root, name);
+
+            Regex regex = new Regex(@"(^\w+|_+)");
+            MatchCollection matches = regex.Matches(value);
+
+            if (matches.Count > 0)
+            {
+                Regex regexName = new Regex(@"(^\d+)");
+                MatchCollection matchesName = regexName.Matches(value);
+
+                if (matchesName.Count > 0)
+                {
+                    _optionSetValidator.AddError($"Name '{value}' isn`t valid.", root);
+                }              
+            }
+            else
+            {
+                _optionSetValidator.AddError($"Name '{value}' isn`t valid.", root);
+            }
+
+            return value;
+        }
+
         private T ReplaceConstants<T>(XElement root, string attributeName)
         {
             var value = root.GetAttributeValue<string>(attributeName);
@@ -64,8 +93,8 @@ namespace SetMeta.Impl
         {
             if (value != null)
             {
-                Regex regex = new Regex(@"{(Constant name=)(?<name>\w*|_*)}");
-                MatchCollection matches = regex.Matches(value);
+                var regex = new Regex(@"{(Constant name=)(?<name>\w*|_*)}");
+                var matches = regex.Matches(value);
 
                 if (matches.Count > 0)
                 {
@@ -89,7 +118,7 @@ namespace SetMeta.Impl
 
         private void ParseConstants(XElement root, IDictionary<string, Constant> constants)
         {
-            root.Elements(Keys.Constant)
+            root.Elements(ConstantElement.ElementName)
                 .ForEach(element =>
                 {
                     var constant = ParseConstant(element);
@@ -113,7 +142,7 @@ namespace SetMeta.Impl
 
         private void ParseGroups(XElement root, IDictionary<string, Group> groups)
         {
-            root.Elements(Keys.Group)
+            root.Elements(GroupElement.ElementName)
                 .ForEach(element =>
                 {
                     var group = ParseGroup(element);
@@ -139,10 +168,10 @@ namespace SetMeta.Impl
         {
             var group = new Group();
 
-            group.Name = TryGetMandatoryAttributeValue<string>(root, GroupAttributeKeys.Name);
+            group.Name = CheckName(root, GroupElement.Attrs.Name);
             group.Id = CreateId(group.Name);
-            group.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(GroupAttributeKeys.DisplayName, GroupAttributeDefaults.DisplayName));
-            group.Description = ReplaceConstants(root.TryGetAttributeValue<string>(GroupAttributeKeys.Description, GroupAttributeDefaults.Description));
+            group.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(GroupElement.Attrs.DisplayName, GroupElement.Attrs.Defaults.DisplayName));
+            group.Description = ReplaceConstants(root.TryGetAttributeValue<string>(GroupElement.Attrs.Description, GroupElement.Attrs.Defaults.Description));
             ParseOptions(root, group.Options);
             ParseGroups(root, group.Groups);
             ParseSuggestions(root, group.Suggestions);
@@ -152,12 +181,12 @@ namespace SetMeta.Impl
 
         private void ParseSuggestions(XElement root, IDictionary<string, IDictionary<SuggestionType, Suggestion>> suggestions)
         {
-            root.Elements(Keys.Option)
+            root.Elements(OptionElement.ElementName)
                 .ForEach(element =>
                 {
                     var tempDictionary = new Dictionary<SuggestionType, Suggestion>();
 
-                    element.Elements(Keys.Suggestion)
+                    element.Elements(SuggestionElement.ElementName)
                         .ForEach(suggestionElement =>
                         {
                             var suggestion = CreateSuggestion(suggestionElement);
@@ -264,16 +293,15 @@ namespace SetMeta.Impl
         {
             var constant = new Constant();
 
-            constant.Name = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.Name);
-            constant.ValueType = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.ValueType);
-            constant.Value = TryGetMandatoryAttributeValue<string>(root, ConstantAttributeKeys.Value);
+            constant.Name = CheckName(root, ConstantElement.Attrs.Name);
+            constant.Value = ReplaceConstants(root.TryGetAttributeValue(ConstantElement.Attrs.Value, ConstantElement.Attrs.Defaults.Value));
 
             return constant;
         }
 
         private void ParseOptions(XElement root, IDictionary<string, Option> options)
         {
-            root.Elements(Keys.Option)
+            root.Elements(OptionElement.ElementName)
                 .ForEach(element =>
                 {
                     var option = ParseOption(element);
@@ -331,20 +359,20 @@ namespace SetMeta.Impl
         {
             var option = new Option();
 
-            option.Name = TryGetMandatoryAttributeValue<string>(root, OptionAttributeKeys.Name);
+            option.Name = CheckName(root, OptionElement.Attrs.Name);
             option.Id = CreateId(option.Name);
-            option.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(OptionAttributeKeys.DisplayName, OptionAttributeDefaults.DisplayName));
-            option.Description = ReplaceConstants(root.TryGetAttributeValue<string>(OptionAttributeKeys.Description, OptionAttributeDefaults.Description));
-            option.DefaultValue = ReplaceConstants(root.TryGetAttributeValue<string>(OptionAttributeKeys.DefaultValue, null));
-            option.ValueType = root.TryGetAttributeValue(OptionAttributeKeys.ValueType, OptionAttributeDefaults.ValueType);
+            option.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.DisplayName, OptionElement.Attrs.Defaults.DisplayName));
+            option.Description = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.Description, OptionElement.Attrs.Defaults.Description));
+            option.DefaultValue = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.DefaultValue, null));
+            option.ValueType = root.TryGetAttributeValue(OptionElement.Attrs.ValueType, OptionElement.Attrs.Defaults.ValueType);
             var optionValue = _optionValueFactory.Create(option.ValueType);
             option.Behaviour = CreateBehaviour(root, optionValue);
 
-            var defaultValueElement = root.Elements().FirstOrDefault(o => o.Name == OptionAttributeKeys.DefaultValue);
+            var defaultValueElement = root.Elements().FirstOrDefault(o => o.Name == OptionElement.Attrs.DefaultValue);
             if (defaultValueElement != null)
             {
-                if (root.IsAttributeExists(OptionAttributeKeys.DefaultValue))
-                    _optionSetValidator.AddError($"Option {option.Name} has two defaultValue's.", root);
+                if (root.IsAttributeExists(OptionElement.Attrs.DefaultValue))
+                    _optionSetValidator.AddError($"Option '{option.Name}' has two defaultValue's.", root);
 
                 var dataElement = defaultValueElement.Elements().First();
                 if (dataElement.NodeType != XmlNodeType.CDATA)
@@ -359,7 +387,7 @@ namespace SetMeta.Impl
         private T TryGetMandatoryAttributeValue<T>(XElement root, string name)
         {
             if (!root.TryGetAttributeValue(name, out T value))
-                _optionSetValidator.AddError($"Mandatory attribute {name} not found.", root);
+                _optionSetValidator.AddError($"Mandatory attribute '{name}' not found.", root);
 
             return value;
         }

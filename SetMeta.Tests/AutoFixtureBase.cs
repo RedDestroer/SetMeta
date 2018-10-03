@@ -4,17 +4,21 @@ using AutoFixture;
 using AutoFixture.Dsl;
 using AutoFixture.Kernel;
 using NUnit.Framework;
+using SetMeta.Tests.TestDataCreators;
+using SetMeta.Tests.TestDataCreators.Abstract;
 
 namespace SetMeta.Tests
 {
     public abstract class AutoFixtureBase
     {
         public IFixture AutoFixture { get; private set; }
+        public ISetMetaTestDataCreator TestDataCreator { get; private set; }
 
         [SetUp]
         public void SetUp()
         {
             AutoFixture = new Fixture();
+            TestDataCreator = new SetMetaTestDataCreator();
             SetUpInner();
         }
 
@@ -27,6 +31,11 @@ namespace SetMeta.Tests
         public T Dep<T>()
         {
             return AutoFixture.Freeze<T>();
+        }
+
+        public string Fake(string prefix = "RandomString")
+        {
+            return $"{prefix}{Fake<int>()}";
         }
 
         public T Fake<T>()

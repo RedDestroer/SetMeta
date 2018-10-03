@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<optionSet version="1" xmlns="http://tempuri.org" xmlns:xsi="http://tempuri.org/2018/Option/XMLSchema-instance" xsi:schemaLocation="http://tempuri.org OptionV1.xsd">
+<optionSet version="1" xmlns="http://tempuri.org" xmlns:xsi="http://tempuri.org/2018/Option/XMLSchema-instance" xsi:schemaLocation="http://tempuri.org OptionSetV1.xsd">
   <option name="name1" displayName="displayName1" description="description1" defaultValue="defaultValue1" valueType="valueType1">
 
     <!--Если нужно задать DefaultValue, но его нельзя размещать в атрибуте, то его можно задать через ноду. Может присутствовать либо атрибут, либо нода-->

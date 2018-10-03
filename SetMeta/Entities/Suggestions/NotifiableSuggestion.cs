@@ -1,7 +1,7 @@
 ﻿namespace SetMeta.Entities.Suggestions
 {
     public class NotifiableSuggestion
-        :Suggestion
+        : Suggestion
     {
         /// <summary>
         /// Тип предложения
