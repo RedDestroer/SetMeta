@@ -13,17 +13,17 @@ namespace SetMeta.Abstract
         }
 
         /// <summary>
-        /// Тип значения настройки
+        /// Setting value type
         /// </summary>
         public OptionValueType OptionValueType => OptionValue.OptionValueType;
 
         /// <summary>
-        /// Объект со значением настройи
+        /// Object with setting value
         /// </summary>
         protected IOptionValue OptionValue { get; }
 
         /// <summary>
-        /// Получает значение настройки из строки
+        /// Gets setting value from string
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -33,7 +33,7 @@ namespace SetMeta.Abstract
         }
 
         /// <summary>
-        /// Получает строку из значения настройки
+        /// Gets string from setting value
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>

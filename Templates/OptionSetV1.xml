@@ -2,110 +2,111 @@
 <optionSet version="1" xmlns="http://tempuri.org" xmlns:xsi="http://tempuri.org/2018/Option/XMLSchema-instance" xsi:schemaLocation="http://tempuri.org OptionSetV1.xsd">
   <option name="name1" displayName="displayName1" description="description1" defaultValue="defaultValue1" valueType="valueType1">
 
-    <!--Если нужно задать DefaultValue, но его нельзя размещать в атрибуте, то его можно задать через ноду. Может присутствовать либо атрибут, либо нода-->
+    <!--If you need to set a DefaultValue, but it can't be placed in the attribute, it can be set through the node. Either an attribute or node may be present.-->
     <defaultValue><![CDATA[]]></defaultValue>
 
-    <!--Настройка является диапазонной-->
-    <!--min - минимальное значение настройки. Атрибут может отсутствовать, тогда полагается, что минимальное значение равно default(T)-->
-    <!--max - максимальное значение настройки. Атрибут может отсутствовать, тогда полагается, что максимальное значение равно default(T)-->
+    <!--Setting is range-->
+    <!--min - minimum setting value. Attribute may be missing, then suggest that minimum value equals default(T)-->
+    <!--max - maximum setting value. Attribute may be missing, then suggest that maximum value equals default(T)-->
     <rangedMinMax min="{Constant name=min}" max="{Constant name=max}"/>
 
-    <!--Настройка является диапазонной, у которой нет ограничения снизу-->
-    <!--max - максимальное значение настройки. Атрибут может отсутствовать, тогда полагается, что максимальное значение равно default(T)-->
+    <!--Setting is range, which has no bottom limit-->
+    <!--max - maximum setting value. Attribute may be missing, then suggest that maximum value equals default(T)-->
     <rangedMax max=""/>
 
-    <!--Настройка является диапазонной, у которой нет ограничения сверху-->
-    <!--min - минимальное значение настройки. Атрибут может отсутствовать, тогда полагается, что минимальное значение равно default(T)-->
+    <!--Setting is range, which has no top limit-->
+    <!--min - minimum setting value. Attribute may be missing, then suggest that minimum value equals default(T)-->
     <rangedMin min="" />
 
-    <!--Настройка является выбираемым из списка значением-->
+    <!--Setting is a selectable value from the list-->
     <fixedList>
-      <!--Элемент списка-->
-      <!--value - значение элемента. Атрибут может отсутствовать, тогда полагается, что value = null-->
-      <!--displayValue - значение в отображаемом для пользователя виде. Атрибут может отсутствовать, тогда полагается, что displayValue = value-->
+      <!--List item-->
+      <!--value - item value. Attribute may be missing, then suggest that value = null-->
+      <!--displayValue - value in state displayed to user. Attribute may be missing, then suggest that displayValue = value-->
       <listItem value="" displayValue=""/>
     </fixedList>
 
-    <!--Настройка является выбираемым из списка значением, где список получается sql-запросом-->
-    <!--query - запрос, выполнив который можно получить список из двух полей в строке. Атрибут не может быть null-->
-    <!--valueFieldName - имя поля из которого брать значения для ключей элементов списка. Атрибут может отсутствовать, тогда полагается, что valueFieldName = "value"-->
-    <!--displayValueFieldName - имя поля из которого брать значения для отображения с списке. Атрибут может отсутствовать, тогда полагается, что displayValueFieldName = "displayValue"-->
+    <!--Setting is a selectable value from the list, where list is obtained by sql-query-->
+    <!--query - request, after which you can get a list of two fields in the line. Attribute can't be null-->
+    <!--valueFieldName - name of the field from which to take values ​​for the keys of list items. Attribute may be missing, then suggest that valueFieldName = "value"-->
+    <!--displayValueFieldName - name of the field from which to take values ​​for display in the list. Attribute may be missing, then suggest that displayValueFieldName = "displayValue"-->
     <sqlFixedList query="" valueFieldName="" displayValueFieldName=""/>
     
-    <!--Настройка является выбираемым из списка набором флагов, где список образован степенями двойки, а результатом выбора является конечное значение флага, являющегося комбинацией выбранных флагов. Имеет смысл только для числовых типов-->
+    <!--Setting is a selectable set of flags from the list, where list is formed by powers of two, and choice result is a flag final value, that is a combination of chosen flags. Makes sense only for numeric types-->
     <flagList>
-      <!--Элемент списка-->
-      <!--value - значение флага. Атрибут может отсутствовать, тогда полагается, что value = 0-->
-      <!--displayValue - значение в отображаемом для пользователя виде. Атрибут может отсутствовать, тогда полагается, что displayValue = value-->
+      <!--List item-->
+      <!--value - flag value. Attribute may be missing, then suggest that value = 0-->
+      <!--displayValue - value in state displayed to user. Attribute may be missing, then suggest that displayValue = value-->
       <listItem value="" displayValue=""/>
     </flagList>
 
-    <!--Настройка является выбираемым из списка набором флагов, где список получается sql-запросом и список образован степенями двойки, а результатом выбора является конечное значение флага, являющегося комбинацией выбранных флагов. Имеет смысл столько для числовых типов-->
-    <!--query - запрос, выполнив который можно получить список из двух полей в строке. Атрибут не может быть null-->
-    <!--valueFieldName - имя поля из которого брать значения для ключей элементов списка. Атрибут может отсутствовать, тогда полагается, что valueFieldName = "value"-->
-    <!--displayValueFieldName - имя поля из которого брать значения для отображения с списке. Атрибут может отсутствовать, тогда полагается, что displayValueFieldName = "displayValue"-->
+    <!--Setting is a selectable set of flags from the list, where list is obtained by sql-query and formed by powers of two, and choice result is a flag final value, that is a combination of chosen flags. Makes sense only for numeric types-->
+    <!--query - request, after which you can get a list of two fields in the line. Attribute can't be null-->
+    <!--valueFieldName - name of the field from which to take values ​​for the keys of list items. Attribute may be missing, then suggest that valueFieldName = "value"-->
+    <!--displayValueFieldName - name of the field from which to take values ​​for display in the list. Attribute may be missing, then suggest that displayValueFieldName = "displayValue"-->
     <sqlFlagList query="" valueFieldName="" displayValueFieldName=""/>
 
-    <!--Настройка является списком, в котором возможен множественный выбор элементов. Имеет смысл только для строкового типа-->
-    <!--sorted - надо или нет учитывать порядок, в котором пользователь выбрал элементы. Допустимые значения: True, 1, False, 0. Атрибут может отсутствовать, тогда полагается, что sorted = "False"-->
-    <!--separator - разделитель ключей в результирующей строке. Атрибут может отсутствовать, тогда полагается, что separator = ";"-->
+    <!--Setting is a list, in which the multiple choice of elements is possible. Makes sense only for string type-->
+    <!--sorted - whether or not to take into account the order, in which user choosed elements. Valid values: True, 1, False, 0. Attribute may be missing, then suggest that sorted = "False"-->
+    <!--separator - key separator in the result string. Attribute may be missing, then suggest that separator = ";"-->
     <multiList sorted="" separator="">
-      <!--Элемент списка-->
-      <!--value - значение элемента. Атрибут может отсутствовать, тогда полагается, что value = null-->
-      <!--displayValue - значение в отображаемом для пользователя виде. Атрибут может отсутствовать, тогда полагается, что displayValue = value-->
+      <!--List item-->
+      <!--value - flag value. Attribute may be missing, then suggest that value = 0-->
+      <!--displayValue - value in state displayed to user. Attribute may be missing, then suggest that displayValue = value-->
       <listItem value="" displayValue=""/>
     </multiList>
     
-    <!--Настройка является списком, в котором возможен множественный выбор элементов, где список получается sql-запросом. Имеет смысл только для строкового типа-->
-    <!--sorted - надо или нет учитывать порядок, в котором пользователь выбрал элементы. Допустимые значения: True, 1, False, 0. Атрибут может отсутствовать, тогда полагается, что sorted = "False"-->
-    <!--separator - разделитель ключей в результирующей строке. Атрибут может отсутствовать, тогда полагается, что separator = ";"-->
-    <!--query - запрос, выполнив который можно получить список из двух полей в строке. Атрибут не может быть null-->
-    <!--valueFieldName - имя поля из которого брать значения для ключей элементов списка. Атрибут может отсутствовать, тогда полагается, что valueFieldName = "value"-->
-    <!--displayValueFieldName - имя поля из которого брать значения для отображения с списке. Атрибут может отсутствовать, тогда полагается, что displayValueFieldName = "displayValue"-->
+    <!--Setting is a list, where list is obtained by sql-query, in which the multiple choice of elements is possible. Makes sense only for string type-->
+    <!--sorted - whether or not to take into account the order, in which user choosed elements. Valid values: True, 1, False, 0. Attribute may be missing, then suggest that sorted = "False"-->
+    <!--separator - key separator in the result string. Attribute may be missing, then suggest that separator = ";"-->
+    <!--query - request, after which you can get a list of two fields in the line. Attribute can't be null-->
+    <!--valueFieldName - name of the field from which to take values ​​for the keys of list items. Attribute may be missing, then suggest that valueFieldName = "value"-->
+    <!--displayValueFieldName - name of the field from which to take values ​​for display in the list. Attribute may be missing, then suggest that displayValueFieldName = "displayValue"-->
     <sqlMultiList sorted="" separator="" query="" valueFieldName="" displayValueFieldName=""/>
   </option>
 
-  <!--Может быть 0..*-->
+  <!--May be 0..*-->
   <group name="name1" displayName="displayName1" description="description1">
-    <!--Может быть 0..*-->
+    <!--May be 0..*-->
     <option name="name3">
-      <!--Может быть 0..*-->
+      <!--May be 0..*-->
       <suggestion name="name6"/>
     </option>
-    <!--Может быть 0..*-->
+    <!--May be 0..*-->
     <group name="name2" displayName="displayName2" description="{Constant name=name1}, {Constant name=name2}">
       <option name="name4"/>
       <option name="name5"/>
     </group>
   </group>
 
-  <!--Может быть 0..*-->
+  <!--May be 0..*-->
   <constant name="name" value="value" valueType="valueType1"/>
   <constant name="max" value="255" valueType="valueType1"/>
   <constant name="min" value="5" valueType="valueType1"/>
 
-  <!--Может быть 0..*-->
+  <!--May be 0..*-->
   <suggestion name="name6">
-    <!--Максимальная длина поля-->
-    <!--value - собственно сама минимальная длина поля. Целое положительное число типа UInt16. Не может быть null-->
+    <!--Minimum length of field-->
+    <!--value - minimum length of field. Positive integer of type UInt16. Can't be null-->
     <minLength value="{Constant name=nameofConstant}"/>
-    <!--value - собственно сама максимальная длина поля. Целое положительное число типа UInt16. Не может быть null-->
+    <!--Maximum length of field-->
+    <!--value - maximum length of field. Positive integer of type UInt16. Can't be null-->
     <maxLength value=""/>
-    <!--Предположение о том, что поле должно быть многострочным-->
+    <!--The assumption that the field should be multi-line-->
     <multiline/>
-    <!--Минимальное количество строк в многострочном поле-->
-    <!--value - собственно само количество строк. Целое положительное число типа Byte. Не может быть null-->
+    <!--Minimum number of lines in multi-line field-->
+    <!--value - number of lines. Positive integer of type Byte. Can't be null-->
     <minLines value=""/>
-    <!--Максимальное количество строк в многострочном поле-->
-    <!--value - собственно само количество строк. Целое положительное число типа Byte. Не может быть null-->
+    <!--Maximum number of lines in multi-line field-->
+    <!--value - number of lines. Positive integer of type Byte. Can't be null-->
     <maxLines value=""/>
-    <!--Регулярное выражение для проверки корректности введённого значения-->
-    <!--value - само регулярное выражение, которое будет применено к строковому представлению типа поля. String. Не может быть null-->
-    <!--validation - текст, которые нужно включить в валидацию для пользователя, если значение не проходит проверку. String. Атрибут может отсутствовать, тогда полагается, что validation = null-->
+    <!--Regular expression to check the correctness of the entered value-->
+    <!--value - regular expression, which will be applied to the string representation of the field type. String. Can't be null-->
+    <!--validation - text, that should be implemented into validation for user, if value fails the test. String. Attribute may be missing, then suggest that validation = null-->
     <regex value="" validation=""/>
-    <!--Следует ли уведомлять те настройки, у которых есть suggestion notifiable о том, что значение настройки изменилось-->
+    <!--Should notify those settings, which have suggestion notifiable changing setting value-->
     <notifyOnChange/>
-    <!--Следует ли уведомлять эту настройку о факте смены значения настройки с suggestion notifyOnChange. Настройке должна приехать: ссылка на изменившуюся настройку-->
+    <!--Should notify that settings about fact of changing value with suggestion notifyOnChange. Setting should get: link to the changed setting-->
     <notifiable/>
     <control name="nameOfControl" />
   </suggestion>

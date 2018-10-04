@@ -7,7 +7,6 @@ using System.Xml.Linq;
 using SetMeta.Abstract;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
-using SetMeta.Entities.Suggestions;
 using SetMeta.Util;
 using Group = SetMeta.Entities.Group;
 using OptionElement = SetMeta.XmlKeys.OptionSetElement.OptionElement;
@@ -441,8 +440,8 @@ namespace SetMeta.Impl
                     break;
                 case "multiList":
                 {
-                    bool sorted = ReplaceConstants<bool>(root, "sorted");
-                    string separator = ReplaceConstants<string>(root, "separator");
+                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue<bool>("sorted", false).ToString()));
+                    string separator = ReplaceConstants(root.TryGetAttributeValue<string>("separator", ";"));
                     optionBehaviour = CreateMultiListBehaviour(root, optionValue, sorted, separator);
                 }
                     break;

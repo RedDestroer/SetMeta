@@ -8,17 +8,17 @@ namespace SetMeta.Util
     public static class DataConversion
     {
         /// <summary>
-        /// ODBC формат даты
+        /// ODBC date format
         /// </summary>
         public static readonly string DateTimeOdbcFormat = "yyyy-MM-dd HH:mm:ss";
 
         /// <summary>
-        /// ODBC формат даты с миллисекундами
+        /// ODBC date format with milliseconds
         /// </summary>
         public static readonly string DateTimeOdbcWithMsFormat = "yyyy-MM-dd HH:mm:ss.fff";
 
         /// <summary>
-        /// ISO8601 формат даты
+        /// ISO8601 date format
         /// </summary>
         public static readonly string DateTimeIso8601Format = "yyyy-MM-ddTHH:mm:ss.fff";
 
@@ -357,7 +357,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Попробуем объехать стандарты России
+                // Let's try to go round the standards of Russia
                 input = input.Replace(',', '.');
                 if (input.StartsWith(".") || input.StartsWith(","))
                     input = string.Concat("0", input);
@@ -371,7 +371,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Последняя попытка - возможно локаль на самом деле российская стояла
+                // Last attempt - maybe the locale was actually Russian
                 input = input.Replace('.', ',');
                 result = float.TryParse(input, NumberStyles.Number, FormatProvider, out value2);
                 if (result)
@@ -399,7 +399,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Попробуем объехать стандарты России
+                // Let's try to go round the standards of Russia
                 input = input.Replace(',', '.');
                 if (input.StartsWith(".") || input.StartsWith(","))
                     input = string.Concat("0", input);
@@ -413,7 +413,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Последняя попытка - возможно локаль на самом деле российская стояла
+                // Last attempt - maybe the locale was actually Russian
                 input = input.Replace('.', ',');
                 result = float.TryParse(input, NumberStyles.Number, FormatProvider, out value2);
                 if (result)
@@ -435,7 +435,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Попробуем объехать стандарты России
+                // Let's try to go round the standards of Russia
                 input = input.Replace(',', '.');
                 if (input.StartsWith(".") || input.StartsWith(","))
                     input = string.Concat("0", input);
@@ -449,7 +449,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Последняя попытка - возможно локаль на самом деле российская стояла
+                // Last attempt - maybe the locale was actually Russian
                 input = input.Replace('.', ',');
                 result = double.TryParse(input, NumberStyles.Number, FormatProvider, out value2);
                 if (result)
@@ -477,7 +477,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Попробуем объехать стандарты России
+                // Let's try to go round the standards of Russia
                 input = input.Replace(',', '.');
                 if (input.StartsWith(".") || input.StartsWith(","))
                     input = string.Concat("0", input);
@@ -491,7 +491,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Последняя попытка - возможно локаль на самом деле российская стояла
+                // Last attempt - maybe the locale was actually Russian
                 input = input.Replace('.', ',');
                 result = double.TryParse(input, NumberStyles.Number, FormatProvider, out value2);
                 if (result)
@@ -513,7 +513,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Попробуем объехать стандарты России
+                // Let's try to go round the standards of Russia
                 input = input.Replace(',', '.');
                 if (input.StartsWith(".") || input.StartsWith(","))
                     input = string.Concat("0", input);
@@ -527,7 +527,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Последняя попытка - возможно локаль на самом деле российская стояла
+                // Last attempt - maybe the locale was actually Russian
                 input = input.Replace('.', ',');
                 result = decimal.TryParse(input, NumberStyles.Number, FormatProvider, out value2);
                 if (result)
@@ -555,7 +555,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Попробуем объехать стандарты России
+                // Let's try to go round the standards of Russia
                 input = input.Replace(',', '.');
                 if (input.StartsWith(".") || input.StartsWith(","))
                     input = string.Concat("0", input);
@@ -569,7 +569,7 @@ namespace SetMeta.Util
                     return true;
                 }
 
-                // Последняя попытка - возможно локаль на самом деле российская стояла
+                // Last attempt - maybe the locale was actually Russian
                 input = input.Replace('.', ',');
                 result = decimal.TryParse(input, NumberStyles.Number, FormatProvider, out value2);
                 if (result)
@@ -661,9 +661,9 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Провайдер формата, который используется при парсинге
+        /// The provider of the format that is used when parsing
         /// </summary>
-        /// <exception cref="ArgumentNullException">Если value null</exception>
+        /// <exception cref="ArgumentNullException">If value null</exception>
         public static IFormatProvider FormatProvider
         {
             get => _formatProvider;
@@ -671,7 +671,7 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Добавить вариант формата даты, который будет пробываться при парсинге дат
+        /// Add a date format option that will be parsed when parsing dates
         /// </summary>
         /// <param name="format"></param>
         public static void AddDateTimeFormat(string format)
@@ -690,35 +690,35 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Добавить парсер
+        /// Add parser
         /// </summary>
-        /// <typeparam name="T">Тип значения, который возвращается парсером</typeparam>
-        /// <param name="parseMethod">делегат парсинга</param>
+        /// <typeparam name="T">Value type, which parser return</typeparam>
+        /// <param name="parseMethod">parser delegate</param>
         public static void AddParser<T>(TryParseMethod<T> parseMethod)
         {
             Parsers[typeof(T)] = new TryParser<T>(parseMethod);
         }
 
         /// <summary>
-        /// Конвертировать строку в ожидаемый тип
+        /// Convert string into expected type
         /// </summary>
-        /// <typeparam name="T">Тип значения, который возвращается парсером</typeparam>
-        /// <param name="input">Входящая строка</param>
+        /// <typeparam name="T">Value type, which parser return</typeparam>
+        /// <param name="input">Input string</param>
         /// <returns></returns>
         public static T Convert<T>(string input)
         {
             if (TryConvert(input, out T answer))
                 return answer;
 
-            throw new InvalidOperationException($"Невозможно преобразовать значение '{input}' к типу '{typeof(T).FullName}'.");
+            throw new InvalidOperationException($"Unable to convert value '{input}' to type '{typeof(T).FullName}'.");
         }
 
         /// <summary>
-        /// Попробовать сконвертировать строку в ожидаемый тип
+        /// Try to convert string into expected type
         /// </summary>
-        /// <typeparam name="T">Тип значения, который возвращается парсером</typeparam>
-        /// <param name="input">Входящая строка</param>
-        /// <param name="value">Получающееся значение</param>
+        /// <typeparam name="T">Value type, which parser return</typeparam>
+        /// <param name="input">Input string</param>
+        /// <param name="value">Output value</param>
         /// <returns></returns>
         public static bool TryConvert<T>(string input, out T value)
         {
@@ -749,7 +749,7 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Попробовать сконвертировать строку в ожидаемый тип
+        /// Try to convert string into expected type
         /// </summary>
         /// <param name="type"></param>
         /// <param name="input"></param>
@@ -766,7 +766,7 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Возвращает значение Enum из строки
+        /// Returns value Enum from string
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="input"></param>
@@ -776,15 +776,15 @@ namespace SetMeta.Util
         {
             var type = typeof(T);
             if (!type.IsEnum)
-                throw new InvalidOperationException("Переданный тип не является Enum'ом.");
+                throw new InvalidOperationException("Transferred type is not Enum.");
 
             return (T)Enum.Parse(type, input, ignoreCase);
         }
 
         /// <summary>
-        /// Попробовать распарсить Enum тип
+        /// Try parse Enum type
         /// </summary>
-        /// <typeparam name="T">Тип значения, который возвращается парсером, и который должен быть енумом</typeparam>
+        /// <typeparam name="T">Value type which parser returns and which must be Enum</typeparam>
         /// <param name="input"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -800,7 +800,7 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Попробовать распарсить Enum тип
+        /// Try parse Enum type
         /// </summary>
         /// <param name="type"></param>
         /// <param name="input"></param>

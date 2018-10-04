@@ -10,7 +10,7 @@ using XsdIterator;
 
 namespace SetMeta.Tests.Impl
 {
-    [TestFixture, Ignore("Not competed")]
+    [TestFixture, Ignore("Not completed")]
     internal class OptionSetParserV1XsdTestFixture
         : SutBase<OptionSetParserV1, OptionSetParser>
     {

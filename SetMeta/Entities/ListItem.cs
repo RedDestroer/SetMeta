@@ -1,7 +1,7 @@
 ﻿namespace SetMeta.Entities
 {
     /// <summary>
-    /// Элемент списка, для настроек типа фиксированного списка
+    /// List item, for settings of fixed list type
     /// </summary>
     public class ListItem
     {

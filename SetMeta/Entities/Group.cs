@@ -6,17 +6,15 @@ namespace SetMeta.Entities
     {
         public Group()
         {
-            Options = new Dictionary<string, Option>();
+            GroupOptions = new List<GroupOption>();
             Groups = new Dictionary<string, Group>();
-            Suggestions = new Dictionary<string, IDictionary<SuggestionType, Suggestion>>();
         }
 
         public string Id { get; set; }
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public string Description { get; set; }
-        public IDictionary<string, Option> Options { get; }
+        public IList<GroupOption> GroupOptions { get; }
         public IDictionary<string, Group> Groups { get; }
-        public IDictionary<string, IDictionary<SuggestionType, Suggestion>> Suggestions { get; }
     }
 }

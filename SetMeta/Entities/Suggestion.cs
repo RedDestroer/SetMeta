@@ -1,13 +1,25 @@
-﻿namespace SetMeta.Entities
+﻿using System.Collections.Generic;
+
+namespace SetMeta.Entities
 {
     /// <summary>
-    /// Предложение по группе настроек или настройке, которые хотелось бы чтобы учёл генератор
+    /// Proposal for a setting that would be great to take into account the generator
     /// </summary>
-    public abstract class Suggestion
+    public class Suggestion
     {
-        /// <summary>
-        /// Тип предложения
-        /// </summary>
-        public abstract SuggestionType SuggestionType { get; }
+        public Suggestion()
+        {
+            Params = new Dictionary<SuggestionType, IDictionary<string, string>>();
+        }
+
+        // You have to remove this.
+        /////// <summary>
+        /////// Suggestion type
+        /////// </summary>
+        ////public abstract SuggestionType SuggestionType { get; }
+        
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public IDictionary<SuggestionType, IDictionary<string, string>> Params { get; }
     }
 }
