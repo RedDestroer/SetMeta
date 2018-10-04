@@ -4,12 +4,12 @@
         : Suggestion
     {
         /// <summary>
-        /// Тип предложения
+        /// Suggestion type
         /// </summary>
         public override SuggestionType SuggestionType => SuggestionType.MaxLines;
 
         /// <summary>
-        /// Желаемое максимальное количество строк
+        /// Desired maximum number of lines 
         /// </summary>
         public byte Value { get; set; }
     }

@@ -4,7 +4,7 @@
         : Suggestion
     {
         /// <summary>
-        /// Тип предложения
+        /// Suggestion type
         /// </summary>
         public override SuggestionType SuggestionType => SuggestionType.Notifiable;
     }

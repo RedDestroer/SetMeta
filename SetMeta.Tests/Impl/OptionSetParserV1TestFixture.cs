@@ -732,6 +732,22 @@ namespace SetMeta.Tests.Impl
         ////    var mock = Fake<Mock<IOptionSetValidator>>();
         ////    var expectedMessage = $"Suggestion with type '{SuggestionType.Regex}' isn`t unique among option '{optionName}'.";
 
+        ////private XElement GenerateConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
+        ////{
+        ////    var constant = new XElement(Keys.Constant);
+
+        ////    foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
+        ////    {
+        ////        AddAttribute(constant,
+        ////            optionAttribute,
+        ////            name == null || name != optionAttribute.Name
+        ////                ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
+        ////                : value);
+        ////    }
+
+        ////    return constant;
+        ////}
+
         ////    var document = GenerateDocumentWithOneGroupWithOptionAndTwoSameSuggestions(a => a.Use == XmlSchemaUse.Required || a.Name == ConstantAttributeKeys.Name, ConstantAttributeKeys.Name, groupName, CreateRegexSuggestion(value), CreateRegexSuggestion(value), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
 
         ////    Sut.Parse(CreateReader(document), mock.Object);

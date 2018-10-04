@@ -7,7 +7,7 @@ namespace SetMeta.Util
     public static class ListExtension
     {
         /// <summary>
-        /// Добавляет набор элементов в список
+        /// Adds a set of items to the list
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
@@ -29,7 +29,7 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Добавляет элемент в список если его там нет
+        /// Adds item to the list if it's not already in it
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
@@ -54,9 +54,9 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Возвращает подмножество [idx...end] из списка.
+        /// Returns a subset [idx...end] from list.
         /// </summary>
-        /// <typeparam name="T">Тип</typeparam>
+        /// <typeparam name="T">Type</typeparam>
         /// <param name="list"></param>
         /// <param name="idx"></param>
         public static List<T> Sublist<T>(this List<T> list, int idx)
@@ -65,10 +65,10 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Из http://stackoverflow.com/questions/564366/generic-list-to-datatable
-        /// который также предлагает для лучшей производительности, HyperDescriptor: http://www.codeproject.com/Articles/18450/HyperDescriptor-Accelerated-dynamic-property-acces
+        /// From http://stackoverflow.com/questions/564366/generic-list-to-datatable
+        /// which also offers for better performance, HyperDescriptor: http://www.codeproject.com/Articles/18450/HyperDescriptor-Accelerated-dynamic-property-acces
         /// </summary>
-        /// <typeparam name="T">Тип</typeparam>
+        /// <typeparam name="T">Type</typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
         public static DataTable AsDataTable<T>(this IList<T> data)

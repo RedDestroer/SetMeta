@@ -4,12 +4,12 @@
         : Suggestion
     {
         /// <summary>
-        /// Тип предложения
+        /// Suggestion type
         /// </summary>
         public override SuggestionType SuggestionType => SuggestionType.MaxLength;
 
         /// <summary>
-        /// Желаемая максимальная длина поля
+        /// Desired maximum field length
         /// </summary>
         public ushort Value { get; set; }
     }

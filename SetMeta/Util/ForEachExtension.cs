@@ -9,9 +9,9 @@ namespace SetMeta.Util
     public static class ForEachExtension
     {
         /// <summary>
-        /// Позволяет модифицировать значения в коллекции по мере её перечисления
+        /// Allows modification of values ​​in a collection as it is listed.
         /// </summary>
-        /// <typeparam name="T">Тип</typeparam>
+        /// <typeparam name="T">Type</typeparam>
         /// <param name="collection"></param>
         /// <param name="action"></param>
         public static void IndexerForEach<T>(this IList<T> collection, Action<T> action)
@@ -71,9 +71,9 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Выполняет действие 'иначе', если перечислимое пустое
+        /// Performs the action 'otherwise' if the enum is empty
         /// </summary>
-        /// <typeparam name="T">Тип</typeparam>
+        /// <typeparam name="T">Type</typeparam>
         /// <param name="collection"></param>
         /// <param name="action"></param>
         /// <param name="elseAction"></param>
@@ -131,10 +131,10 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Возвращает новый словарь, полученный слиянием двух других
+        /// Returns new vocabulary, obtained by merging the other two
         /// </summary>
-        /// <typeparam name="T">Тип ключа</typeparam>
-        /// <typeparam name="TV">Тип значения</typeparam>
+        /// <typeparam name="T">Key type</typeparam>
+        /// <typeparam name="TV">Value type</typeparam>
         /// <param name="dict1"></param>
         /// <param name="dict2"></param>
         /// <returns></returns>
@@ -144,10 +144,10 @@ namespace SetMeta.Util
         }
 
         /// <summary>
-        /// Возвращает новый словарь, полученный слиянием двух других с игнорированием дубликатов ключей
+        /// Returns new vocabulary, obtained by merging the other two with ignoring key duplicates
         /// </summary>
-        /// <typeparam name="T">Тип ключа</typeparam>
-        /// <typeparam name="TV">Тип значения</typeparam>
+        /// <typeparam name="T">Key type</typeparam>
+        /// <typeparam name="TV">Value type</typeparam>
         /// <param name="dict1"></param>
         /// <param name="dict2"></param>
         /// <returns></returns>
