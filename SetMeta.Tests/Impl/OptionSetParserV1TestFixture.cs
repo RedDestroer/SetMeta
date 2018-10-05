@@ -22,6 +22,7 @@ using MultiListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.MultiLis
 using SqlFlagListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlFlagListElement;
 using SqlMultiListElement= SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlMultiListElement;
 using ConstantElement = SetMeta.XmlKeys.OptionSetElement.ConstantElement;
+using SuggestionElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement;
 
 namespace SetMeta.Tests.Impl
 {
@@ -609,191 +610,210 @@ namespace SetMeta.Tests.Impl
             Assert.That(actual.Constants[name].Value, Is.EqualTo(ConstantElement.Attrs.Defaults.Value));
         }
 
-        ////[Test]
-        ////public void Parse_ShouldReturnCorrectSuggestion_WhenItPresentMaxLengthSuggestion()
-        ////{
-        ////    var max = Fake<ushort>();
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
+        [Test]
+        public void Parse_ShouldReturnCorrectSuggestion_WhenItPresentMaxLengthSuggestion()
+        {
+            var max = Fake<int>();
+            var name = Fake("_");
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.OptionSuggestion.WithMaxLength(max.ToString()).Build(name))
+                .Build();
 
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, 
-        ////        groupName, 
-        ////        CreateMaxLengthSuggestion(max.ToString()), 
-        ////        GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, 
-        ////            optionName));
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Suggestions[name].Name, Is.EqualTo(name));
+            Assert.That(actual.Suggestions[name].Params, Is.Not.Null);
+            Assert.That(actual.Suggestions[name].Params.Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params.ContainsKey(SuggestionType.MaxLength), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MaxLength].Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MaxLength].ContainsKey(SuggestionElement.MaxLengthElement.Attrs.Value), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MaxLength][SuggestionElement.MaxLengthElement.Attrs.Value], Is.EqualTo(max.ToString()));
+        }
 
-        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MaxLength));
-        ////}
+        [Test]
+        public void Parse_WhenItPresentMaxLinesSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var max = Fake<int>();
+            var name = Fake("_");
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.OptionSuggestion.WithMaxLines(max.ToString()).Build(name))
+                .Build();
 
-        ////[Test]
-        ////public void Parse_WhenItPresentMaxLinesSuggestion_ShouldReturnCorrectSuggestion()
-        ////{
-        ////    var max = Fake<byte>();
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMaxLinesSuggestion(max), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Suggestions[name].Name, Is.EqualTo(name));
+            Assert.That(actual.Suggestions[name].Params, Is.Not.Null);
+            Assert.That(actual.Suggestions[name].Params.Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params.ContainsKey(SuggestionType.MaxLines), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MaxLines].Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MaxLines].ContainsKey(SuggestionElement.MaxLinesElement.Attrs.Value), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MaxLines][SuggestionElement.MaxLinesElement.Attrs.Value], Is.EqualTo(max.ToString()));
+        }
 
-        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        [Test]
+        public void Parse_WhenItPresentMinLengthSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var min = Fake<int>();
+            var name = Fake("_");
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.OptionSuggestion.WithMinLength(min.ToString()).Build(name))
+                .Build();
 
-        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MaxLines));
-        ////}
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-        ////[Test]
-        ////public void Parse_WhenItPresentMinLengthSuggestion_ShouldReturnCorrectSuggestion()
-        ////{
-        ////    var min = Fake<UInt16>();
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Suggestions[name].Name, Is.EqualTo(name));
+            Assert.That(actual.Suggestions[name].Params, Is.Not.Null);
+            Assert.That(actual.Suggestions[name].Params.Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params.ContainsKey(SuggestionType.MinLength), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MinLength].Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MinLength].ContainsKey(SuggestionElement.MinLengthElement.Attrs.Value), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MinLength][SuggestionElement.MinLengthElement.Attrs.Value], Is.EqualTo(min.ToString()));
+        }
 
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMinLengthSuggestion(min), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+        [Test]
+        public void Parse_WhenItPresentMinLinesSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var min = Fake<int>();
+            var name = Fake("_");
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.OptionSuggestion.WithMinLines(min.ToString()).Build(name))
+                .Build();
 
-        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MinLength));
-        ////}
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Suggestions[name].Name, Is.EqualTo(name));
+            Assert.That(actual.Suggestions[name].Params, Is.Not.Null);
+            Assert.That(actual.Suggestions[name].Params.Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params.ContainsKey(SuggestionType.MinLines), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MinLines].Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MinLines].ContainsKey(SuggestionElement.MinLinesElement.Attrs.Value), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MinLines][SuggestionElement.MinLinesElement.Attrs.Value], Is.EqualTo(min.ToString()));
+        }
 
-        ////[Test]
-        ////public void Parse_WhenItPresentMinLinesSuggestion_ShouldReturnCorrectSuggestion()
-        ////{
-        ////    var min = Fake<byte>();
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
+        [Test]
+        public void Parse_WhenItPresentMultiLineSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var name = Fake("_");
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.OptionSuggestion.WithMultiLine().Build(name))
+                .Build();
 
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMinLinesSuggestion(min), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Suggestions[name].Name, Is.EqualTo(name));
+            Assert.That(actual.Suggestions[name].Params, Is.Not.Null);
+            Assert.That(actual.Suggestions[name].Params.Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params.ContainsKey(SuggestionType.Multiline), Is.True);
+        }
 
-        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.MinLines));
-        ////}
+        [Test]
+        public void Parse_WhenItPresentNotifiableSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var name = Fake("_");
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.OptionSuggestion.WithNotifiable().Build(name))
+                .Build();
 
-        ////[Test]
-        ////public void Parse_WhenItPresentMultiLineSuggestion_ShouldReturnCorrectSuggestion()
-        ////{
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateMultiLineSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Suggestions[name].Name, Is.EqualTo(name));
+            Assert.That(actual.Suggestions[name].Params, Is.Not.Null);
+            Assert.That(actual.Suggestions[name].Params.Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params.ContainsKey(SuggestionType.Notifiable), Is.True);
+        }
 
-        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+        [Test]
+        public void Parse_WhenItPresentNotifyOnChangeSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var name = Fake("_");
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.OptionSuggestion.WithNotifyOnChange().Build(name))
+                .Build();
 
-        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Multiline));
-        ////}
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-        ////[Test]
-        ////public void Parse_WhenItPresentNotifiableSuggestion_ShouldReturnCorrectSuggestion()
-        ////{
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Suggestions[name].Name, Is.EqualTo(name));
+            Assert.That(actual.Suggestions[name].Params, Is.Not.Null);
+            Assert.That(actual.Suggestions[name].Params.Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params.ContainsKey(SuggestionType.NotifyOnChange), Is.True);
+        }
 
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateNotifiableSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+        [Test]
+        public void Parse_WhenItPresentRegexSuggestion_ShouldReturnCorrectSuggestion()
+        {
+            var value = Fake<string>();
+            var validation = Fake<string>();
+            var name = Fake("_");
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.OptionSuggestion.WithRegex(value, validation).Build(name))
+                .Build();
 
-        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Notifiable));
-        ////}
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Suggestions[name].Name, Is.EqualTo(name));
+            Assert.That(actual.Suggestions[name].Params, Is.Not.Null);
+            Assert.That(actual.Suggestions[name].Params.Count, Is.EqualTo(1));
+            Assert.That(actual.Suggestions[name].Params.ContainsKey(SuggestionType.Regex), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.Regex].Count, Is.EqualTo(2));
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.Regex].ContainsKey(SuggestionElement.RegexElement.Attrs.Value), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.Regex][SuggestionElement.RegexElement.Attrs.Value], Is.EqualTo(value));
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.Regex].ContainsKey(SuggestionElement.RegexElement.Attrs.Validation), Is.True);
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.Regex][SuggestionElement.RegexElement.Attrs.Validation], Is.EqualTo(validation));
+        }
 
-        ////[Test]
-        ////public void Parse_WhenItPresentNotifyOnChangeSuggestion_ShouldReturnCorrectSuggestion()
-        ////{
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
+        [Test]
+        public void Parse_WhenItPresentConstantWithSuggestionWithThatConstant_ShouldReturnCorrectSuggestion()
+        {
+            var name = Fake("_");
+            var constantName = "Test";
+            var constantValue = Fake<int>();
 
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateNotifyOnChangeSuggestion(), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+            var optionSet = TestDataCreator.OptionSet
+                .WithElement(TestDataCreator.Constant.WithValue(constantValue.ToString()).Build(constantName))
+                .WithElement(TestDataCreator.OptionSuggestion.WithMinLength("{Constant name=Test}").Build(name))
+                .Build();
 
-        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.NotifyOnChange));
-        ////}
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Suggestions[name].Params[SuggestionType.MinLength][SuggestionElement.MinLengthElement.Attrs.Value], Is.EqualTo(actual.Constants[constantName].Value.ToString()));
+        }
 
-        ////[Test]
-        ////public void Parse_WhenItPresentRegexSuggestion_ShouldReturnCorrectSuggestion()
-        ////{
-        ////    var value = Fake<string>();
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
+        [Test]
+        public void Parse_WhenItPresentGroupWithSuggestion_SuggestionInGroupIsReplacedWithSuggestionFromOptionSet()
+        {
+            var max = Fake<int>();
+            var suggestionName = Fake("_");
+            var optionName = Fake("_");
+            var groupName = Fake("_");
+            var optionSet = TestDataCreator.OptionSet                
+                .WithElement(TestDataCreator.Group.WithElement(TestDataCreator.Option.WithElement(TestDataCreator.OptionSuggestion.Build(suggestionName)).Build(optionName)).Build(groupName))
+                .WithElement(TestDataCreator.OptionSuggestion.WithMaxLength(max.ToString()).Build(suggestionName))
+                .Build();
 
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestion(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, CreateRegexSuggestion(value), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
+            var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
 
-        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-
-        ////    Assert.That(actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Keys.First(), Is.EqualTo(SuggestionType.Regex));
-        ////}
-
-        ////[Test]
-        ////public void Parse_WhenWePassNotUniqueSuggestion_OptionSetValidatorLogError()
-        ////{
-        ////    var value = Fake<string>();
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
-
-        ////    var mock = Fake<Mock<IOptionSetValidator>>();
-        ////    var expectedMessage = $"Suggestion with type '{SuggestionType.Regex}' isn`t unique among option '{optionName}'.";
-
-        ////private XElement GenerateConstant(Predicate<XmlSchemaAttribute> expectedAttribute, string name, object value)
-        ////{
-        ////    var constant = new XElement(Keys.Constant);
-
-        ////    foreach (var optionAttribute in OptionInformant.Value.OptionAttributes.Where(o => expectedAttribute(o)))
-        ////    {
-        ////        AddAttribute(constant,
-        ////            optionAttribute,
-        ////            name == null || name != optionAttribute.Name
-        ////                ? Fake(optionAttribute.AttributeSchemaType.Datatype.ValueType)
-        ////                : value);
-        ////    }
-
-        ////    return constant;
-        ////}
-
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndTwoSameSuggestions(a => a.Use == XmlSchemaUse.Required || a.Name == ConstantAttributeKeys.Name, ConstantAttributeKeys.Name, groupName, CreateRegexSuggestion(value), CreateRegexSuggestion(value), GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName));
-
-        ////    Sut.Parse(CreateReader(document), mock.Object);
-
-        ////    mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
-        ////}
-
-        ////[Test]
-        ////public void Parse_WhenItPresentConstantWithSuggestionWithThatConstant_ShouldReturnCorrectSuggestion()
-        ////{
-        ////    var constantName = "Test";
-        ////    var constantValue = Fake<UInt16>();
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
-
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestionAndOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName, 
-        ////        CreateMaxLengthSuggestion("{Constant name=Test}"), 
-        ////        GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName), 
-        ////        GenerateConstantWithValue(constantName, constantValue, "UInt16"));
-
-        ////    var actual = Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-
-        ////    Assert.That(((MaxLengthSuggestion)actual.Groups.First().Value.Suggestions[OptionSetParser.CreateId(optionName)].Values.First()).Value, Is.EqualTo(constantValue));
-        ////}
-
-        ////[Test]
-        ////public void Parse_WhenItPresentSuggestionAndThereIsNoConstantWithRightName_Throws()
-        ////{
-        ////    var constantName = "Test2";
-        ////    var constantValue = Fake<UInt16>();
-        ////    var groupName = Fake<string>();
-        ////    var optionName = Fake<string>();
-        ////    var suggestionValue = "{Constant name=Test}";
-
-        ////    var document = GenerateDocumentWithOneGroupWithOptionAndSuggestionAndOneConstant(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, groupName,
-        ////        CreateMaxLengthSuggestion(suggestionValue),
-        ////        GenerateOption(a => a.Use == XmlSchemaUse.Required || a.Name == OptionAttributeKeys.Name, OptionAttributeKeys.Name, optionName),
-        ////        GenerateConstantWithValue(constantName, constantValue, "UInt16"));
-
-        ////    var ex = Assert.Throws<InvalidOperationException>(() =>
-        ////    {
-        ////        Sut.Parse(CreateReader(document), Fake<IOptionSetValidator>());
-        ////    });
-
-        ////    Assert.That(ex.Message, Is.EqualTo($"Невозможно преобразовать значение '{suggestionValue}' к типу '{typeof(UInt16).FullName}'."));
-        ////}
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Groups[groupName].GroupOptions.First().Suggestions[SuggestionType.MaxLength][SuggestionElement.MaxLengthElement.Attrs.Value], Is.EqualTo(actual.Suggestions[suggestionName].Params[SuggestionType.MaxLength][SuggestionElement.MaxLengthElement.Attrs.Value]));
+        }
 
         private XmlTextReader CreateReader(string data)
         {
