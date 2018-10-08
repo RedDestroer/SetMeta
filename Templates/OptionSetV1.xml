@@ -71,6 +71,7 @@
     <option name="name3">
       <!--May be 0..*-->
       <suggestion name="name6"/>
+      <suggestion name="name5"/>
     </option>
     <!--May be 0..*-->
     <group name="name2" displayName="displayName2" description="{Constant name=name1}, {Constant name=name2}">
