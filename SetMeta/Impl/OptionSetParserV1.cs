@@ -13,6 +13,10 @@ using OptionElement = SetMeta.XmlKeys.OptionSetElement.OptionElement;
 using ConstantElement = SetMeta.XmlKeys.OptionSetElement.ConstantElement;
 using GroupElement = SetMeta.XmlKeys.OptionSetElement.GroupElement;
 using SuggestionElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement;
+using RangedMinMaxElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMinMaxElement;
+using RangedMinElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMinElement;
+using RangedMaxElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMaxElement;
+using FixedListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.FixedListElement;
 
 namespace SetMeta.Impl
 {
@@ -23,6 +27,7 @@ namespace SetMeta.Impl
 
         private IOptionSetValidator _optionSetValidator;
         private IDictionary<string, Constant> _constants;
+        private IDictionary<string, Suggestion> _suggestions;
 
         public OptionSetParserV1(IOptionValueFactory optionValueFactory)
         {
@@ -48,6 +53,9 @@ namespace SetMeta.Impl
 
             ParseConstants(body, optionSet.Constants);
             _constants = optionSet.Constants;
+
+            ParseSuggestions(body, optionSet.Suggestions);
+            _suggestions = optionSet.Suggestions;
 
             ParseOptions(body, optionSet.Options);
             ParseGroups(body, optionSet.Groups);
@@ -169,123 +177,175 @@ namespace SetMeta.Impl
 
             group.Name = CheckName(root, GroupElement.Attrs.Name);
             group.Id = CreateId(group.Name);
-            group.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(GroupElement.Attrs.DisplayName, GroupElement.Attrs.Defaults.DisplayName));
-            group.Description = ReplaceConstants(root.TryGetAttributeValue<string>(GroupElement.Attrs.Description, GroupElement.Attrs.Defaults.Description));
-            ParseOptions(root, group.Options);
+            group.DisplayName = ReplaceConstants(root.TryGetAttributeValue(GroupElement.Attrs.DisplayName, GroupElement.Attrs.Defaults.DisplayName));
+            group.Description = ReplaceConstants(root.TryGetAttributeValue(GroupElement.Attrs.Description, GroupElement.Attrs.Defaults.Description));
+            ParseGroupOptions(root, group.GroupOptions);
             ParseGroups(root, group.Groups);
-            ParseSuggestions(root, group.Suggestions);
 
             return group;
         }
 
-        private void ParseSuggestions(XElement root, IDictionary<string, IDictionary<SuggestionType, Suggestion>> suggestions)
+        private void ParseGroupOptions(XElement root, IList<GroupOption> groupOptions)
         {
-            root.Elements(OptionElement.ElementName)
+            root.Elements(GroupElement.OptionElement.ElementName)
                 .ForEach(element =>
                 {
-                    var tempDictionary = new Dictionary<SuggestionType, Suggestion>();
-
-                    element.Elements(SuggestionElement.ElementName)
-                        .ForEach(suggestionElement =>
-                        {
-                            var suggestion = CreateSuggestion(suggestionElement);
-
-                            if (tempDictionary.ContainsKey(suggestion.SuggestionType))
-                            {
-                                string optionName = element.TryGetAttributeValue("name", "optionName");
-                                _optionSetValidator.AddError($"Suggestion with type '{suggestion.SuggestionType}' isn`t unique among option '{optionName}'.", element);                              
-                            }
-                            else
-                            {
-                                tempDictionary.Add(suggestion.SuggestionType, suggestion);
-                            }
-                        });
-
-                    string name = element.TryGetAttributeValue("name", "optionName");
-                    string id = CreateId(name);
-
-                    if (suggestions.ContainsKey(id))
+                    var option = ParseOption(element);
+                    if (KeyIsValid(option.Id))
                     {
-                        _optionSetValidator.AddError($"Key '{id}' isn`t unique among options.", element);
+                        if (KeyIsUniqueForGroupOption(option.Id, groupOptions))
+                        {
+                            var groupOption = new GroupOption();
+
+                            groupOption.Option = option;
+                            ParseSuggestions(element, groupOption.Suggestions);
+
+                            groupOptions.AddIfUnique(groupOption);
+                        }
+                        else
+                        {
+                            _optionSetValidator.AddError($"Key '{option.Id}' isn`t unique among options.", element);
+                        }
                     }
                     else
                     {
-                        suggestions.Add(id, tempDictionary);
+                        _optionSetValidator.AddError($"Key '{option.Id}' ('{option.Name}') isn`t valid.", element);
                     }
                 });
         }
 
-        private Suggestion CreateSuggestion(XElement root)
+        private bool KeyIsUniqueForGroupOption(string id, IList<GroupOption> groupOptions)
+        {
+            return groupOptions.All(groupOption => !groupOption.Option.Id.Equals(id));
+        }
+
+        private void ParseSuggestions(XElement root, IDictionary<string, Suggestion> suggestions)
+        {
+            root.Elements(SuggestionElement.ElementName)
+                .ForEach(element =>
+                {
+                    var suggestionElements = CreateSuggestion(element);
+
+                    if (suggestionElements.Count != 0)
+                    {
+                        var suggestion = new Suggestion();
+
+                        suggestion.Name = CheckName(element, SuggestionElement.Attrs.Name);
+                        suggestion.Id = CreateId(suggestion.Name);
+
+                        foreach (var kv in suggestionElements)
+                        {
+                            suggestion.Params.Add(kv);
+                        }
+
+                        if (KeyIsUnique(suggestion.Name, suggestions))
+                        {
+                            suggestions[suggestion.Name] = suggestion;
+                        }
+                    }
+                });
+        }
+
+        private void ParseSuggestions(XElement root, IDictionary<SuggestionType, IDictionary<string, string>> suggestions)
+        {
+            root.Elements(SuggestionElement.ElementName)
+                .ForEach(element =>
+                {
+                    var suggestionName = CheckName(element, SuggestionElement.Attrs.Name);
+
+                    foreach (var suggestion in _suggestions)
+                    {
+                        if (suggestion.Key.Equals(suggestionName))
+                        {
+                            foreach (var kv in suggestion.Value.Params)
+                            {
+                                suggestions[kv.Key] = kv.Value;
+                            }
+                        }
+                    }
+                });
+        }
+
+        private IDictionary<SuggestionType, IDictionary<string, string>> CreateSuggestion(XElement root)
         {
             var elements = root.Elements();
+            var dictionary = new Dictionary<SuggestionType, IDictionary<string, string>>();
 
             foreach (var element in elements)
             {
-                if (TryCreateSuggestion(element, out var suggestion))
+                if (!TryCreateSuggestion(element, out var suggestion))
                 {
-                    return suggestion;
+                    if (!dictionary.ContainsKey(suggestion.Key))
+                    {
+                        dictionary.Add(suggestion.Key, suggestion.Value);
+                    }
                 }
             }
 
-            return null;
+            return dictionary;
         }
 
-        private bool TryCreateSuggestion(XElement root, out Suggestion suggestion)
+        private bool TryCreateSuggestion(XElement root, out KeyValuePair<SuggestionType, IDictionary<string, string>> suggestion)
         {
             string name = root.Name.LocalName;
-            suggestion = null;
+            
 
             switch (name)
             {
                 case "maxLength":
                 {
                     ushort max = ReplaceConstants<ushort>(root, "value");
-                    suggestion = new MaxLengthSuggestion {Value = max};
+                    var dictionary = new Dictionary<string, string> {{"value", max.ToString()}};
+                    suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.MaxLength, dictionary);
                 }
                     break;
                 case "maxLines":
                 {
                     byte max = ReplaceConstants<byte>(root, "value");
-                    suggestion = new MaxLinesSuggestion {Value = max};
+                    var dictionary = new Dictionary<string, string> { { "value", max.ToString() } };
+                    suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.MaxLines, dictionary);
                 }
                     break;
                 case "minLength":
                 {
                     ushort min = ReplaceConstants<ushort>(root, "value");
-                    suggestion = new MinLengthSuggestion { Value = min };
+                    var dictionary = new Dictionary<string, string> { { "value", min.ToString() } };
+                    suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.MinLength, dictionary);
                 }
                     break;
                 case "minLines":
                 {
                     byte min = ReplaceConstants<byte>(root, "value");
-                    suggestion = new MinLinesSuggestion { Value = min };
+                    var dictionary = new Dictionary<string, string> { { "value", min.ToString() } };
+                    suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.MinLines, dictionary);
                 }
                     break;
                 case "multiline":
                 {
-                    suggestion = new MultiLineSuggestion();
+                    suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.Multiline, null);
                 }
                     break;
                 case "notifiable":
                 {
-                    suggestion = new NotifiableSuggestion();
+                    suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.Notifiable, null);
                 }
                     break;
                 case "notifyOnChange":
                 {
-                    suggestion = new NotifyOnChangeSuggestion();
+                    suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.NotifyOnChange, null);
                 }
                     break;
                 case "regex":
                 {
                     string value = ReplaceConstants<string>(root, "value");
                     string validation = ReplaceConstants(root.TryGetAttributeValue<string>("validation", null));
-                    suggestion = new RegexSuggestion { Value = value, Validation = validation};
+                    var dictionary = new Dictionary<string, string> { { "value", value }, {"validation", validation} };
+                    suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.Regex, dictionary);
                 }
                     break;
             }
 
-            return suggestion != null;
+            return false;
         }
         
         private Constant ParseConstant(XElement root)
@@ -337,9 +397,9 @@ namespace SetMeta.Impl
             return !constants.ContainsKey(id);
         }
 
-        private bool KeyIsUnique(string id, IDictionary<string, Constant> constants)
+        private bool KeyIsUnique(string id, IDictionary<string, Suggestion> suggestions)
         {
-            return !constants.ContainsKey(id);
+            return !suggestions.ContainsKey(id);
         }
 
         private bool KeyIsValid(string id)
@@ -360,8 +420,8 @@ namespace SetMeta.Impl
 
             option.Name = CheckName(root, OptionElement.Attrs.Name);
             option.Id = CreateId(option.Name);
-            option.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.DisplayName, OptionElement.Attrs.Defaults.DisplayName));
-            option.Description = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.Description, OptionElement.Attrs.Defaults.Description));
+            option.DisplayName = ReplaceConstants(root.TryGetAttributeValue(OptionElement.Attrs.DisplayName, OptionElement.Attrs.Defaults.DisplayName));
+            option.Description = ReplaceConstants(root.TryGetAttributeValue(OptionElement.Attrs.Description, OptionElement.Attrs.Defaults.Description));
             option.DefaultValue = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.DefaultValue, null));
             option.ValueType = root.TryGetAttributeValue(OptionElement.Attrs.ValueType, OptionElement.Attrs.Defaults.ValueType);
             var optionValue = _optionValueFactory.Create(option.ValueType);
@@ -413,26 +473,26 @@ namespace SetMeta.Impl
             
             switch (name)
             {
-                case "rangedMinMax":
+                case RangedMinMaxElement.ElementName:
                 {
-                    string min = ReplaceConstants<string>(root, "min");
-                    string max = ReplaceConstants<string>(root, "max");
+                    string min = ReplaceConstants<string>(root, RangedMinMaxElement.Attrs.Min);
+                    string max = ReplaceConstants<string>(root, RangedMinMaxElement.Attrs.Max);
                     optionBehaviour = new RangedOptionBehaviour(optionValue, min, max);
                 }
                     break;
-                case "rangedMax":
+                case RangedMaxElement.ElementName:
                 {
-                    string max = ReplaceConstants<string>(root, "max");
+                    string max = ReplaceConstants<string>(root, RangedMaxElement.Attrs.Max);
                     optionBehaviour = new RangedOptionBehaviour(optionValue, max, false);
                 }
                     break;
-                case "rangedMin":
+                case RangedMinElement.ElementName:
                 {
-                    string min = ReplaceConstants<string>(root, "min");
+                    string min = ReplaceConstants<string>(root, RangedMinElement.Attrs.Min);
                     optionBehaviour = new RangedOptionBehaviour(optionValue, min, true);
                 }
                     break;
-                case "fixedList":
+                case FixedListElement.ElementName:
                     optionBehaviour = CreateFixedListBehaviour(root, optionValue);
                     break;
                 case "flagList":
@@ -440,34 +500,34 @@ namespace SetMeta.Impl
                     break;
                 case "multiList":
                 {
-                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue<bool>("sorted", false).ToString()));
-                    string separator = ReplaceConstants(root.TryGetAttributeValue<string>("separator", ";"));
+                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue("sorted", false).ToString()));
+                    string separator = ReplaceConstants(root.TryGetAttributeValue("separator", ";"));
                     optionBehaviour = CreateMultiListBehaviour(root, optionValue, sorted, separator);
                 }
                     break;
                 case "sqlFixedList":
                 {
                     string query = ReplaceConstants<string>(root, "query");
-                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("valueFieldName", "value"));
-                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("displayValueFieldName", "displayValue"));
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue("valueFieldName", "value"));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue("displayValueFieldName", "displayValue"));
                     optionBehaviour = new SqlFixedListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
                 }
                     break;
                 case "sqlFlagList":
                 {
                     string query = ReplaceConstants<string>(root, "query");
-                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("valueFieldName", "value"));
-                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("displayValueFieldName", "displayValue"));
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue("valueFieldName", "value"));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue("displayValueFieldName", "displayValue"));
                     optionBehaviour = new SqlFlagListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
                 }
                     break;
                 case "sqlMultiList":
                 {
                     string query = ReplaceConstants<string>(root, "query");
-                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue<bool>("sorted", false).ToString()));
-                    string separator = ReplaceConstants(root.TryGetAttributeValue<string>("separator", ";"));
-                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("valueFieldName", "value"));
-                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("displayValueFieldName", "displayValue"));
+                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue("sorted", false).ToString()));
+                    string separator = ReplaceConstants(root.TryGetAttributeValue("separator", ";"));
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue("valueFieldName", "value"));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue("displayValueFieldName", "displayValue"));
                     optionBehaviour = new SqlMultiListOptionBehaviour(optionValue, query, sorted, separator, valueFieldName, displayValueFieldName);
                 }
                     break;
