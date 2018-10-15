@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using AutoFixture;
 using AutoFixture.AutoMoq;
@@ -11,14 +10,6 @@ namespace SetMeta.Tests.Util
 {
     public static class ArgumentValidationExtensions
     {
-        public static T ThrowIfNull<T>(this T o, string paramName) where T : class
-        {
-            if (o == null)
-                throw new ArgumentNullException(paramName);
-
-            return o;
-        }
-
         public static void ShouldThrowArgumentNullException<T>(this T o, Action<T> action, string argumentName) where T : class
         {
             var ex = Assert.Throws<ArgumentNullException>(() => action(o));

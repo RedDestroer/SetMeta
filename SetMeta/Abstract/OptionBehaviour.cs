@@ -1,5 +1,4 @@
-﻿using System;
-using SetMeta.Util;
+﻿using SetMeta.Util;
 
 namespace SetMeta.Abstract
 {

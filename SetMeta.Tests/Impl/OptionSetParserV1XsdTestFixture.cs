@@ -14,7 +14,9 @@ namespace SetMeta.Tests.Impl
     internal class OptionSetParserV1XsdTestFixture
         : SutBase<OptionSetParserV1, OptionSetParser>
     {
+        // ReSharper disable once NotAccessedField.Local
         private static readonly Lazy<IOptionInformant> OptionInformant;
+        // ReSharper disable once NotAccessedField.Local
         private IOptionValueFactory _optionValueFactory = new OptionValueFactory();
 
         static OptionSetParserV1XsdTestFixture()

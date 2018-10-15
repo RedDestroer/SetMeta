@@ -13,6 +13,10 @@ using OptionElement = SetMeta.XmlKeys.OptionSetElement.OptionElement;
 using ConstantElement = SetMeta.XmlKeys.OptionSetElement.ConstantElement;
 using GroupElement = SetMeta.XmlKeys.OptionSetElement.GroupElement;
 using SuggestionElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement;
+using RangedMinMaxElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMinMaxElement;
+using RangedMinElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMinElement;
+using RangedMaxElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMaxElement;
+using FixedListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.FixedListElement;
 
 namespace SetMeta.Impl
 {
@@ -173,8 +177,8 @@ namespace SetMeta.Impl
 
             group.Name = CheckName(root, GroupElement.Attrs.Name);
             group.Id = CreateId(group.Name);
-            group.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(GroupElement.Attrs.DisplayName, GroupElement.Attrs.Defaults.DisplayName));
-            group.Description = ReplaceConstants(root.TryGetAttributeValue<string>(GroupElement.Attrs.Description, GroupElement.Attrs.Defaults.Description));
+            group.DisplayName = ReplaceConstants(root.TryGetAttributeValue(GroupElement.Attrs.DisplayName, GroupElement.Attrs.Defaults.DisplayName));
+            group.Description = ReplaceConstants(root.TryGetAttributeValue(GroupElement.Attrs.Description, GroupElement.Attrs.Defaults.Description));
             ParseGroupOptions(root, group.GroupOptions);
             ParseGroups(root, group.Groups);
 
@@ -416,8 +420,8 @@ namespace SetMeta.Impl
 
             option.Name = CheckName(root, OptionElement.Attrs.Name);
             option.Id = CreateId(option.Name);
-            option.DisplayName = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.DisplayName, OptionElement.Attrs.Defaults.DisplayName));
-            option.Description = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.Description, OptionElement.Attrs.Defaults.Description));
+            option.DisplayName = ReplaceConstants(root.TryGetAttributeValue(OptionElement.Attrs.DisplayName, OptionElement.Attrs.Defaults.DisplayName));
+            option.Description = ReplaceConstants(root.TryGetAttributeValue(OptionElement.Attrs.Description, OptionElement.Attrs.Defaults.Description));
             option.DefaultValue = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.DefaultValue, null));
             option.ValueType = root.TryGetAttributeValue(OptionElement.Attrs.ValueType, OptionElement.Attrs.Defaults.ValueType);
             var optionValue = _optionValueFactory.Create(option.ValueType);
@@ -469,26 +473,26 @@ namespace SetMeta.Impl
             
             switch (name)
             {
-                case "rangedMinMax":
+                case RangedMinMaxElement.ElementName:
                 {
-                    string min = ReplaceConstants<string>(root, "min");
-                    string max = ReplaceConstants<string>(root, "max");
+                    string min = ReplaceConstants<string>(root, RangedMinMaxElement.Attrs.Min);
+                    string max = ReplaceConstants<string>(root, RangedMinMaxElement.Attrs.Max);
                     optionBehaviour = new RangedOptionBehaviour(optionValue, min, max);
                 }
                     break;
-                case "rangedMax":
+                case RangedMaxElement.ElementName:
                 {
-                    string max = ReplaceConstants<string>(root, "max");
+                    string max = ReplaceConstants<string>(root, RangedMaxElement.Attrs.Max);
                     optionBehaviour = new RangedOptionBehaviour(optionValue, max, false);
                 }
                     break;
-                case "rangedMin":
+                case RangedMinElement.ElementName:
                 {
-                    string min = ReplaceConstants<string>(root, "min");
+                    string min = ReplaceConstants<string>(root, RangedMinElement.Attrs.Min);
                     optionBehaviour = new RangedOptionBehaviour(optionValue, min, true);
                 }
                     break;
-                case "fixedList":
+                case FixedListElement.ElementName:
                     optionBehaviour = CreateFixedListBehaviour(root, optionValue);
                     break;
                 case "flagList":
@@ -496,34 +500,34 @@ namespace SetMeta.Impl
                     break;
                 case "multiList":
                 {
-                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue<bool>("sorted", false).ToString()));
-                    string separator = ReplaceConstants(root.TryGetAttributeValue<string>("separator", ";"));
+                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue("sorted", false).ToString()));
+                    string separator = ReplaceConstants(root.TryGetAttributeValue("separator", ";"));
                     optionBehaviour = CreateMultiListBehaviour(root, optionValue, sorted, separator);
                 }
                     break;
                 case "sqlFixedList":
                 {
                     string query = ReplaceConstants<string>(root, "query");
-                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("valueFieldName", "value"));
-                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("displayValueFieldName", "displayValue"));
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue("valueFieldName", "value"));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue("displayValueFieldName", "displayValue"));
                     optionBehaviour = new SqlFixedListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
                 }
                     break;
                 case "sqlFlagList":
                 {
                     string query = ReplaceConstants<string>(root, "query");
-                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("valueFieldName", "value"));
-                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("displayValueFieldName", "displayValue"));
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue("valueFieldName", "value"));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue("displayValueFieldName", "displayValue"));
                     optionBehaviour = new SqlFlagListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
                 }
                     break;
                 case "sqlMultiList":
                 {
                     string query = ReplaceConstants<string>(root, "query");
-                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue<bool>("sorted", false).ToString()));
-                    string separator = ReplaceConstants(root.TryGetAttributeValue<string>("separator", ";"));
-                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("valueFieldName", "value"));
-                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue<string>("displayValueFieldName", "displayValue"));
+                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue("sorted", false).ToString()));
+                    string separator = ReplaceConstants(root.TryGetAttributeValue("separator", ";"));
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue("valueFieldName", "value"));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue("displayValueFieldName", "displayValue"));
                     optionBehaviour = new SqlMultiListOptionBehaviour(optionValue, query, sorted, separator, valueFieldName, displayValueFieldName);
                 }
                     break;

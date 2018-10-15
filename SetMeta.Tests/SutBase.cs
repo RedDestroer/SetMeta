@@ -1,7 +1,6 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Kernel;
-using NUnit.Framework;
 using SetMeta.Tests.Util;
 
 namespace SetMeta.Tests

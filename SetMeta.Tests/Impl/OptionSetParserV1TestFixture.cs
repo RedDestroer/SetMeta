@@ -11,7 +11,6 @@ using SetMeta.Abstract;
 using SetMeta.Entities;
 using SetMeta.Entities.Behaviours;
 using SetMeta.Impl;
-using SetMeta.Tests.TestDataCreators;
 using SetMeta.Tests.TestDataCreators.Abstract;
 using SetMeta.Tests.TestDataCreators.Extensions;
 using SetMeta.Util;

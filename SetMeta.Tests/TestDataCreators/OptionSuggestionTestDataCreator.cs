@@ -18,28 +18,28 @@ namespace SetMeta.Tests.TestDataCreators
 
         public IOptionSuggestionTestDataCreator WithMinLength(string length)
         {
-            _innerElements.Add(new XElement(NamedSuggestionElement.MinLengthElement.ElementName, new XAttribute(NamedSuggestionElement.MinLengthElement.Attrs.Value, length.ToString())));
+            _innerElements.Add(new XElement(NamedSuggestionElement.MinLengthElement.ElementName, new XAttribute(NamedSuggestionElement.MinLengthElement.Attrs.Value, length)));
 
             return this;
         }
 
         public IOptionSuggestionTestDataCreator WithMaxLength(string length)
         {
-            _innerElements.Add(new XElement(NamedSuggestionElement.MaxLengthElement.ElementName, new XAttribute(NamedSuggestionElement.MaxLengthElement.Attrs.Value, length.ToString())));
+            _innerElements.Add(new XElement(NamedSuggestionElement.MaxLengthElement.ElementName, new XAttribute(NamedSuggestionElement.MaxLengthElement.Attrs.Value, length)));
 
             return this;
         }
 
         public IOptionSuggestionTestDataCreator WithMinLines(string length)
         {
-            _innerElements.Add(new XElement(NamedSuggestionElement.MinLinesElement.ElementName, new XAttribute(NamedSuggestionElement.MinLinesElement.Attrs.Value, length.ToString())));
+            _innerElements.Add(new XElement(NamedSuggestionElement.MinLinesElement.ElementName, new XAttribute(NamedSuggestionElement.MinLinesElement.Attrs.Value, length)));
 
             return this;
         }
 
         public IOptionSuggestionTestDataCreator WithMaxLines(string length)
         {
-            _innerElements.Add(new XElement(NamedSuggestionElement.MaxLinesElement.ElementName, new XAttribute(NamedSuggestionElement.MaxLinesElement.Attrs.Value, length.ToString())));
+            _innerElements.Add(new XElement(NamedSuggestionElement.MaxLinesElement.ElementName, new XAttribute(NamedSuggestionElement.MaxLinesElement.Attrs.Value, length)));
 
             return this;
         }

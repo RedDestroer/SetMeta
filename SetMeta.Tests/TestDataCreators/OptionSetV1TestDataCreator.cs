@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Linq;
-using SetMeta.Entities;
 using SetMeta.Tests.TestDataCreators.Abstract;
 using SetMeta.Util;
 using SetMeta.XmlKeys;
