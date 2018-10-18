@@ -29,3 +29,9 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+    testAssemblyVer2: |
+     **\$(BuildConfiguration)\*Tests*.dll
+     !**\obj\**
+     !*\*Microsoft.VisualStudio.TestPlatform
+    codeCoverageEnabled: true
+    otherConsoleOptions: '/Framework:.NETFramework,Version=v4.7.1'   
