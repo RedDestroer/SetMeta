@@ -17,6 +17,19 @@ using RangedMinMaxElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.Range
 using RangedMinElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMinElement;
 using RangedMaxElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMaxElement;
 using FixedListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.FixedListElement;
+using FlagListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.FlagListElement;
+using MultiListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.MultiListElement;
+using SqlFixedListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlFixedListElement;
+using SqlFlagListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlFlagListElement;
+using SqlMultiListElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.SqlMultiListElement;
+using MaxLengthElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement.MaxLengthElement;
+using MaxLinesElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement.MaxLinesElement;
+using MinLengthElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement.MinLengthElement;
+using MinLinesElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement.MinLinesElement;
+using MultilineElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement.MultilineElement;
+using NotifiableElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement.NotifiableElement;
+using NotifyOnChangeElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement.NotifyOnChangeElement;
+using RegexElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement.RegexElement;
 
 namespace SetMeta.Impl
 {
@@ -292,54 +305,54 @@ namespace SetMeta.Impl
 
             switch (name)
             {
-                case "maxLength":
+                case MaxLengthElement.ElementName:
                 {
-                    ushort max = ReplaceConstants<ushort>(root, "value");
-                    var dictionary = new Dictionary<string, string> {{"value", max.ToString()}};
+                    ushort max = ReplaceConstants<ushort>(root, MaxLengthElement.Attrs.Value);
+                    var dictionary = new Dictionary<string, string> {{ MaxLengthElement.Attrs.Value, max.ToString()}};
                     suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.MaxLength, dictionary);
                 }
                     break;
-                case "maxLines":
+                case MaxLinesElement.ElementName:
                 {
-                    byte max = ReplaceConstants<byte>(root, "value");
-                    var dictionary = new Dictionary<string, string> { { "value", max.ToString() } };
+                    byte max = ReplaceConstants<byte>(root, MaxLinesElement.Attrs.Value);
+                    var dictionary = new Dictionary<string, string> { { MaxLinesElement.Attrs.Value, max.ToString() } };
                     suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.MaxLines, dictionary);
                 }
                     break;
-                case "minLength":
+                case MinLengthElement.ElementName:
                 {
-                    ushort min = ReplaceConstants<ushort>(root, "value");
-                    var dictionary = new Dictionary<string, string> { { "value", min.ToString() } };
+                    ushort min = ReplaceConstants<ushort>(root, MinLengthElement.Attrs.Value);
+                    var dictionary = new Dictionary<string, string> { { MinLengthElement.Attrs.Value, min.ToString() } };
                     suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.MinLength, dictionary);
                 }
                     break;
-                case "minLines":
+                case MinLinesElement.ElementName:
                 {
-                    byte min = ReplaceConstants<byte>(root, "value");
-                    var dictionary = new Dictionary<string, string> { { "value", min.ToString() } };
+                    byte min = ReplaceConstants<byte>(root, MinLinesElement.Attrs.Value);
+                    var dictionary = new Dictionary<string, string> { { MinLinesElement.Attrs.Value, min.ToString() } };
                     suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.MinLines, dictionary);
                 }
                     break;
-                case "multiline":
+                case MultilineElement.ElementName:
                 {
                     suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.Multiline, null);
                 }
                     break;
-                case "notifiable":
+                case NotifiableElement.ElementName:
                 {
                     suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.Notifiable, null);
                 }
                     break;
-                case "notifyOnChange":
+                case NotifyOnChangeElement.ElementName:
                 {
                     suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.NotifyOnChange, null);
                 }
                     break;
-                case "regex":
+                case RegexElement.ElementName:
                 {
-                    string value = ReplaceConstants<string>(root, "value");
-                    string validation = ReplaceConstants(root.TryGetAttributeValue<string>("validation", null));
-                    var dictionary = new Dictionary<string, string> { { "value", value }, {"validation", validation} };
+                    string value = ReplaceConstants<string>(root, RegexElement.Attrs.Value);
+                    string validation = ReplaceConstants(root.TryGetAttributeValue<string>(RegexElement.Attrs.Validation, null));
+                    var dictionary = new Dictionary<string, string> { { RegexElement.Attrs.Value, value }, { RegexElement.Attrs.Validation, validation} };
                     suggestion = new KeyValuePair<SuggestionType, IDictionary<string, string>>(SuggestionType.Regex, dictionary);
                 }
                     break;
@@ -495,39 +508,39 @@ namespace SetMeta.Impl
                 case FixedListElement.ElementName:
                     optionBehaviour = CreateFixedListBehaviour(root, optionValue);
                     break;
-                case "flagList":
+                case FlagListElement.ElementName:
                     optionBehaviour = CreateFlagListBehaviour(root, optionValue);
                     break;
-                case "multiList":
+                case MultiListElement.ElementName:
                 {
-                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue("sorted", false).ToString()));
-                    string separator = ReplaceConstants(root.TryGetAttributeValue("separator", ";"));
+                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue(MultiListElement.Attrs.Sorted, MultiListElement.Attrs.Defaults.Sorted).ToString()));
+                    string separator = ReplaceConstants(root.TryGetAttributeValue(MultiListElement.Attrs.Separator, MultiListElement.Attrs.Defaults.Separator));
                     optionBehaviour = CreateMultiListBehaviour(root, optionValue, sorted, separator);
                 }
                     break;
-                case "sqlFixedList":
+                case SqlFixedListElement.ElementName:
                 {
-                    string query = ReplaceConstants<string>(root, "query");
-                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue("valueFieldName", "value"));
-                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue("displayValueFieldName", "displayValue"));
+                    string query = ReplaceConstants<string>(root, SqlFixedListElement.Attrs.Query);
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue(SqlFixedListElement.Attrs.ValueFieldName, SqlFixedListElement.Attrs.Defaults.ValueFieldName));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue(SqlFixedListElement.Attrs.DisplayValueFieldName, SqlFixedListElement.Attrs.Defaults.DisplayValueFieldName));
                     optionBehaviour = new SqlFixedListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
                 }
                     break;
-                case "sqlFlagList":
+                case SqlFlagListElement.ElementName:
                 {
-                    string query = ReplaceConstants<string>(root, "query");
-                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue("valueFieldName", "value"));
-                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue("displayValueFieldName", "displayValue"));
+                    string query = ReplaceConstants<string>(root, SqlFlagListElement.Attrs.Query);
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue(SqlFlagListElement.Attrs.ValueFieldName, SqlFlagListElement.Attrs.Defaults.ValueFieldName));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue(SqlFlagListElement.Attrs.DisplayValueFieldName, SqlFlagListElement.Attrs.Defaults.DisplayValueFieldName));
                     optionBehaviour = new SqlFlagListOptionBehaviour(optionValue, query, valueFieldName, displayValueFieldName);
                 }
                     break;
-                case "sqlMultiList":
+                case SqlMultiListElement.ElementName:
                 {
-                    string query = ReplaceConstants<string>(root, "query");
-                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue("sorted", false).ToString()));
-                    string separator = ReplaceConstants(root.TryGetAttributeValue("separator", ";"));
-                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue("valueFieldName", "value"));
-                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue("displayValueFieldName", "displayValue"));
+                    string query = ReplaceConstants<string>(root, SqlMultiListElement.Attrs.Query);
+                    bool sorted = DataConversion.Convert<bool>(ReplaceConstants(root.TryGetAttributeValue(SqlMultiListElement.Attrs.Sorted, SqlMultiListElement.Attrs.Defaults.Sorted).ToString()));
+                    string separator = ReplaceConstants(root.TryGetAttributeValue(SqlMultiListElement.Attrs.Separator, SqlMultiListElement.Attrs.Defaults.Separator));
+                    string valueFieldName = ReplaceConstants(root.TryGetAttributeValue(SqlMultiListElement.Attrs.ValueFieldName, SqlMultiListElement.Attrs.Defaults.ValueFieldName));
+                    string displayValueFieldName = ReplaceConstants(root.TryGetAttributeValue(SqlMultiListElement.Attrs.DisplayValueFieldName, SqlMultiListElement.Attrs.Defaults.DisplayValueFieldName));
                     optionBehaviour = new SqlMultiListOptionBehaviour(optionValue, query, sorted, separator, valueFieldName, displayValueFieldName);
                 }
                     break;
@@ -543,10 +556,10 @@ namespace SetMeta.Impl
 
             foreach (var element in elements)
             {
-                if (element.Name.LocalName == "listItem")
+                if (element.Name.LocalName == FixedListElement.ListItemElement.ElementName)
                 {
-                    var value = optionValue.GetValue(element.GetAttributeValue<string>("value"));
-                    string displayValue = element.GetAttributeValue<string>("displayValue");
+                    var value = optionValue.GetValue(element.GetAttributeValue<string>(FixedListElement.ListItemElement.Attrs.Value));
+                    string displayValue = element.GetAttributeValue<string>(FixedListElement.ListItemElement.Attrs.DisplayValue);
                     list.Add(new ListItem(value, displayValue));
                 }
             }
