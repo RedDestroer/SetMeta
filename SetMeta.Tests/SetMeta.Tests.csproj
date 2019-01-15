@@ -120,6 +120,7 @@
     <Compile Include="Entities\Behaviours\FlagListOptionBehaviourTestFixture.cs" />
     <Compile Include="Entities\Behaviours\MultiListOptionBehaviourTestFixture.cs" />
     <Compile Include="Entities\Behaviours\OptionBehaviourTestFixture.cs" />
+    <Compile Include="Impl\DefaultOptionSetValidatorTestFixture.cs" />
     <Compile Include="Impl\OptionSetParserTestFixture.cs" />
     <Compile Include="Impl\OptionSetParserV1TestFixture.cs" />
     <Compile Include="Impl\OptionSetParserV1XsdTestFixture.cs" />

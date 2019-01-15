@@ -27,12 +27,13 @@ namespace SetMeta.Abstract
 
         public abstract string Version { get; }
 
+        // TODO: move to separate class
         public static string CreateId(string data)
         {
             return (data ?? string.Empty).ToLowerInvariant();
         }
 
-        public static OptionSetParser Create(string version)
+        public static OptionSetParser CreateAsVersion(string version)
         {
             Validate.NotNull(version, nameof(version));
 
@@ -47,6 +48,17 @@ namespace SetMeta.Abstract
             }
             
             throw new InvalidOperationException($"Can't create '{nameof(OptionSetParser)}' of given version '{version}'.");
+        }
+
+        public static OptionSetParser Create(string data)
+        {
+            Validate.NotNull(data, nameof(data));
+
+            using (var stringReader = new StringReader(data))
+            using (var xmlTextReader = new XmlTextReader(stringReader))
+            {
+                return Create(xmlTextReader);
+            }
         }
 
         public static OptionSetParser Create(Stream stream)

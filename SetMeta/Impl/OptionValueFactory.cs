@@ -16,17 +16,17 @@ namespace SetMeta.Impl
                 case OptionValueType.Byte:
                     return new OptionValue<byte>(optionValueType, new OptionValueConverter<byte>());
                 case OptionValueType.Int16:
-                    return new OptionValue<Int16>(optionValueType, new OptionValueConverter<Int16>());
+                    return new OptionValue<short>(optionValueType, new OptionValueConverter<short>());
                 case OptionValueType.UInt16:
-                    return new OptionValue<UInt16>(optionValueType, new OptionValueConverter<UInt16>());
+                    return new OptionValue<ushort>(optionValueType, new OptionValueConverter<ushort>());
                 case OptionValueType.Int32:
-                    return new OptionValue<Int32>(optionValueType, new OptionValueConverter<Int32>());
+                    return new OptionValue<int>(optionValueType, new OptionValueConverter<int>());
                 case OptionValueType.UInt32:
-                    return new OptionValue<UInt32>(optionValueType, new OptionValueConverter<UInt32>());
+                    return new OptionValue<uint>(optionValueType, new OptionValueConverter<uint>());
                 case OptionValueType.Int64:
-                    return new OptionValue<Int64>(optionValueType, new OptionValueConverter<Int64>());
+                    return new OptionValue<long>(optionValueType, new OptionValueConverter<long>());
                 case OptionValueType.UInt64:
-                    return new OptionValue<UInt64>(optionValueType, new OptionValueConverter<UInt64>());
+                    return new OptionValue<ulong>(optionValueType, new OptionValueConverter<ulong>());
                 case OptionValueType.Guid:
                     return new OptionValue<Guid>(optionValueType, new OptionValueConverter<Guid>());
                 case OptionValueType.Bool:
@@ -42,17 +42,17 @@ namespace SetMeta.Impl
                 case OptionValueType.NullableByte:
                     return new OptionValue<byte?>(optionValueType, new OptionValueConverter<byte?>());
                 case OptionValueType.NullableInt16:
-                    return new OptionValue<Int16?>(optionValueType, new OptionValueConverter<Int16?>());
+                    return new OptionValue<short?>(optionValueType, new OptionValueConverter<short?>());
                 case OptionValueType.NullableUInt16:
-                    return new OptionValue<UInt16?>(optionValueType, new OptionValueConverter<UInt16?>());
+                    return new OptionValue<ushort?>(optionValueType, new OptionValueConverter<ushort?>());
                 case OptionValueType.NullableInt32:
-                    return new OptionValue<Int32?>(optionValueType, new OptionValueConverter<Int32?>());
+                    return new OptionValue<int?>(optionValueType, new OptionValueConverter<int?>());
                 case OptionValueType.NullableUInt32:
-                    return new OptionValue<UInt32?>(optionValueType, new OptionValueConverter<UInt32?>());
+                    return new OptionValue<uint?>(optionValueType, new OptionValueConverter<uint?>());
                 case OptionValueType.NullableInt64:
-                    return new OptionValue<Int64?>(optionValueType, new OptionValueConverter<Int64?>());
+                    return new OptionValue<long?>(optionValueType, new OptionValueConverter<long?>());
                 case OptionValueType.NullableUInt64:
-                    return new OptionValue<UInt64?>(optionValueType, new OptionValueConverter<UInt64?>());
+                    return new OptionValue<ulong?>(optionValueType, new OptionValueConverter<ulong?>());
                 case OptionValueType.NullableGuid:
                     return new OptionValue<Guid?>(optionValueType, new OptionValueConverter<Guid?>());
                 case OptionValueType.NullableBool:

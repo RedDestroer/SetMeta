@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
@@ -22,20 +23,23 @@ namespace SetMeta.Tests.Impl
         [Test]
         public void ShouldNotAcceptNullArgumentsForAllMethodsInner()
         {
-            typeof(OptionSetParser).ShouldNotAcceptNullArgumentsForAllMethods(AutoFixture, mi => mi.Name != nameof(OptionSetParser.CreateId), BindingFlags.Public | BindingFlags.Static);
+            var exclude = new List<string>
+            {
+                nameof(OptionSetParser.CreateId)
+            };
+            typeof(OptionSetParser).ShouldNotAcceptNullArgumentsForAllMethods(AutoFixture, mi => !exclude.Contains(mi.Name), BindingFlags.Public | BindingFlags.Static);
         }
 
         [Test]
-        public void Create_WhenWePassEmptyString_ThrowException()
+        public void CreateAsVersion_WhenWePassEmptyString_ThrowException()
         {
             var ex = Assert.Throws<InvalidOperationException>(() =>
             {
-                OptionSetParser.Create("");
+                OptionSetParser.CreateAsVersion("");
             });
 
             Assert.That(ex.Message, Is.EqualTo($"Can't create '{nameof(OptionSetParser)}' of given version ''."));
         }
-
 
         [Test]
         public void Parse_WhenNullStreamIsPassed_Throws()
