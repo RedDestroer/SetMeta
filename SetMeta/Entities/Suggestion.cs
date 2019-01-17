@@ -11,13 +11,7 @@ namespace SetMeta.Entities
         {
             Params = new Dictionary<SuggestionType, IDictionary<string, string>>();
         }
-
-        // You have to remove this.
-        /////// <summary>
-        /////// Suggestion type
-        /////// </summary>
-        ////public abstract SuggestionType SuggestionType { get; }
-        
+       
         public string Id { get; set; }
         public string Name { get; set; }
         public IDictionary<SuggestionType, IDictionary<string, string>> Params { get; }

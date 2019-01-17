@@ -13,6 +13,7 @@ using OptionElement = SetMeta.XmlKeys.OptionSetElement.OptionElement;
 using ConstantElement = SetMeta.XmlKeys.OptionSetElement.ConstantElement;
 using GroupElement = SetMeta.XmlKeys.OptionSetElement.GroupElement;
 using SuggestionElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement;
+using OptionSuggestionElement = SetMeta.XmlKeys.OptionSetElement.GroupElement.OptionElement.SuggestionElement;
 using RangedMinMaxElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMinMaxElement;
 using RangedMinElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMinElement;
 using RangedMaxElement = SetMeta.XmlKeys.OptionSetElement.OptionElement.RangedMaxElement;
@@ -76,17 +77,17 @@ namespace SetMeta.Impl
             return optionSet;
         }
 
-        private string CheckName(XElement root, string name)
+        private string CreateName(XElement root, string name)
         {
             var value = TryGetMandatoryAttributeValue<string>(root, name);
 
-            Regex regex = new Regex(@"(^\w+|_+)");
-            MatchCollection matches = regex.Matches(value);
+            var regex = new Regex(@"(^\w+|_+)");
+            var matches = regex.Matches(value);
 
             if (matches.Count > 0)
             {
-                Regex regexName = new Regex(@"(^\d+)");
-                MatchCollection matchesName = regexName.Matches(value);
+                var regexName = new Regex(@"(^\d+)");
+                var matchesName = regexName.Matches(value);
 
                 if (matchesName.Count > 0)
                 {
@@ -188,8 +189,8 @@ namespace SetMeta.Impl
         {
             var group = new Group();
 
-            group.Name = CheckName(root, GroupElement.Attrs.Name);
-            group.Id = CreateId(group.Name);
+            group.Name = CreateName(root, GroupElement.Attrs.Name);
+            group.Id = IdFactory.CreateId(group.Name);
             group.DisplayName = ReplaceConstants(root.TryGetAttributeValue(GroupElement.Attrs.DisplayName, GroupElement.Attrs.Defaults.DisplayName));
             group.Description = ReplaceConstants(root.TryGetAttributeValue(GroupElement.Attrs.Description, GroupElement.Attrs.Defaults.Description));
             ParseGroupOptions(root, group.GroupOptions);
@@ -211,7 +212,7 @@ namespace SetMeta.Impl
                             var groupOption = new GroupOption();
 
                             groupOption.Option = option;
-                            ParseSuggestions(element, groupOption.Suggestions);
+                            ParseOptionSuggestions(element, groupOption.Suggestions);
 
                             groupOptions.AddIfUnique(groupOption);
                         }
@@ -243,8 +244,8 @@ namespace SetMeta.Impl
                     {
                         var suggestion = new Suggestion();
 
-                        suggestion.Name = CheckName(element, SuggestionElement.Attrs.Name);
-                        suggestion.Id = CreateId(suggestion.Name);
+                        suggestion.Name = CreateName(element, SuggestionElement.Attrs.Name);
+                        suggestion.Id = IdFactory.CreateId(suggestion.Name);
 
                         foreach (var kv in suggestionElements)
                         {
@@ -259,22 +260,23 @@ namespace SetMeta.Impl
                 });
         }
 
-        private void ParseSuggestions(XElement root, IDictionary<SuggestionType, IDictionary<string, string>> suggestions)
+        private void ParseOptionSuggestions(XElement root, IDictionary<SuggestionType, IDictionary<string, string>> suggestions)
         {
-            root.Elements(SuggestionElement.ElementName)
+            root.Elements(OptionSuggestionElement.ElementName)
                 .ForEach(element =>
                 {
-                    var suggestionName = CheckName(element, SuggestionElement.Attrs.Name);
+                    var suggestionName = CreateName(element, OptionSuggestionElement.Attrs.Name);
 
-                    foreach (var suggestion in _suggestions)
+                    if (_suggestions.ContainsKey(suggestionName))
                     {
-                        if (suggestion.Key.Equals(suggestionName))
+                        foreach (var kv in _suggestions[suggestionName].Params)
                         {
-                            foreach (var kv in suggestion.Value.Params)
-                            {
-                                suggestions[kv.Key] = kv.Value;
-                            }
+                            suggestions[kv.Key] = kv.Value;
                         }
+                    }
+                    else
+                    {
+                        _optionSetValidator.AddError($"Suggestion with name '{suggestionName}' isn`t found among optionSet suggestions.", element);
                     }
                 });
         }
@@ -365,7 +367,7 @@ namespace SetMeta.Impl
         {
             var constant = new Constant();
 
-            constant.Name = CheckName(root, ConstantElement.Attrs.Name);
+            constant.Name = CreateName(root, ConstantElement.Attrs.Name);
             constant.Value = ReplaceConstants(root.TryGetAttributeValue(ConstantElement.Attrs.Value, ConstantElement.Attrs.Defaults.Value));
 
             return constant;
@@ -431,8 +433,8 @@ namespace SetMeta.Impl
         {
             var option = new Option();
 
-            option.Name = CheckName(root, OptionElement.Attrs.Name);
-            option.Id = CreateId(option.Name);
+            option.Name = CreateName(root, OptionElement.Attrs.Name);
+            option.Id = IdFactory.CreateId(option.Name);
             option.DisplayName = ReplaceConstants(root.TryGetAttributeValue(OptionElement.Attrs.DisplayName, OptionElement.Attrs.Defaults.DisplayName));
             option.Description = ReplaceConstants(root.TryGetAttributeValue(OptionElement.Attrs.Description, OptionElement.Attrs.Defaults.Description));
             option.DefaultValue = ReplaceConstants(root.TryGetAttributeValue<string>(OptionElement.Attrs.DefaultValue, null));

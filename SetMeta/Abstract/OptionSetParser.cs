@@ -16,6 +16,7 @@ namespace SetMeta.Abstract
     {
         private const string AllowedKeyChars = "0123456789abcdefghijklmnopqrstuvwxyz.-_";
         private static readonly IDictionary<string, OptionSetParser> OptionSetParsers = new ConcurrentDictionary<string, OptionSetParser>();
+        private IIdFactory _idFactory;
 
         static OptionSetParser()
         {
@@ -23,14 +24,19 @@ namespace SetMeta.Abstract
                 .ToDictionary(o => o, o => (int)o);
         }
 
+        protected OptionSetParser()
+        {
+            IdFactory = new DefaultIdFactory();
+        }
+
         protected static IDictionary<char, int> AllowedChars { get; }
 
         public abstract string Version { get; }
 
-        // TODO: move to separate class
-        public static string CreateId(string data)
+        public IIdFactory IdFactory
         {
-            return (data ?? string.Empty).ToLowerInvariant();
+            get => _idFactory;
+            set => _idFactory = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         public static OptionSetParser CreateAsVersion(string version)

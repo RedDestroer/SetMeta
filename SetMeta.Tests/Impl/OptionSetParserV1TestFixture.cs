@@ -29,13 +29,13 @@ namespace SetMeta.Tests.Impl
     internal class OptionSetParserV1TestFixture
         : SutBase<OptionSetParserV1, OptionSetParser>
     {
-        
         private static readonly IOptionSetValidator ThrowOptionSetValidator = new ExceptionOptionSetValidator();
 
         protected override void SetUpInner()
         {
             AutoFixture.Register<IOptionValueFactory>(() => new OptionValueFactory());
             base.SetUpInner();
+            Sut.IdFactory = new DefaultIdFactory();
         }
 
         [Test]
@@ -48,6 +48,15 @@ namespace SetMeta.Tests.Impl
         public void ShouldNotAcceptNullArgumentsForAllMethods()
         {
             ShouldNotAcceptNullArgumentsForAllMethodsInner();
+        }
+
+        [Test]
+        public void IdFactory_ShouldBeInitialized()
+        {
+            var optionValueFactory = Fake<IOptionValueFactory>();
+            var target = new OptionSetParserV1(optionValueFactory);
+            Assert.That(target.IdFactory, Is.Not.Null);
+            Assert.That(target.IdFactory, Is.TypeOf<DefaultIdFactory>());
         }
 
         [Test]
@@ -447,7 +456,7 @@ namespace SetMeta.Tests.Impl
         {
             var name = Fake("_");
             var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage = $"Key '{OptionSetParser.CreateId(name)}' isn`t unique among options.";
+            var expectedMessage = $"Key '{Sut.IdFactory.CreateId(name)}' isn`t unique among options.";
             var optionSet = TestDataCreator.OptionSet
                 .WithElement(TestDataCreator.Option.Build(name))
                 .WithElement(TestDataCreator.Option.Build(name))
@@ -464,7 +473,7 @@ namespace SetMeta.Tests.Impl
         {
             var name = Fake("#");
             var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage1 = $"Key '{OptionSetParser.CreateId(name)}' ('{name}') isn`t valid.";
+            var expectedMessage1 = $"Key '{Sut.IdFactory.CreateId(name)}' ('{name}') isn`t valid.";
             var expectedMessage2 = $"Name '{name}' isn`t valid.";
             var optionSet = TestDataCreator.OptionSet
                 .WithElement(TestDataCreator.Option.Build(name))
@@ -482,7 +491,7 @@ namespace SetMeta.Tests.Impl
         {
             var name = Fake("_");
             var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage = $"Key '{OptionSetParser.CreateId(name)}' isn`t unique among groups.";
+            var expectedMessage = $"Key '{Sut.IdFactory.CreateId(name)}' isn`t unique among groups.";
             var optionSet = TestDataCreator.OptionSet
                 .WithElement(TestDataCreator.Group.Build(name))
                 .WithElement(TestDataCreator.Group.Build(name))
@@ -499,7 +508,7 @@ namespace SetMeta.Tests.Impl
         {
             var name = Fake("#");
             var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage1 = $"Key '{OptionSetParser.CreateId(name)}' ('{name}') isn`t valid.";
+            var expectedMessage1 = $"Key '{Sut.IdFactory.CreateId(name)}' ('{name}') isn`t valid.";
             var expectedMessage2 = $"Name '{name}' isn`t valid.";
             var optionSet = TestDataCreator.OptionSet
                 .WithElement(TestDataCreator.Group.Build(name))
@@ -517,7 +526,7 @@ namespace SetMeta.Tests.Impl
         {
             var name = Fake("_");
             var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage = $"Key '{OptionSetParser.CreateId(name)}' isn`t unique among constants.";
+            var expectedMessage = $"Key '{Sut.IdFactory.CreateId(name)}' isn`t unique among constants.";
             var optionSet = TestDataCreator.OptionSet
                 .WithElement(TestDataCreator.Constant.Build(name))
                 .WithElement(TestDataCreator.Constant.Build(name))
@@ -534,7 +543,7 @@ namespace SetMeta.Tests.Impl
         {
             var name = Fake("#");
             var mock = Fake<Mock<IOptionSetValidator>>();
-            var expectedMessage1 = $"Key '{OptionSetParser.CreateId(name)}' ('{name}') isn`t valid.";
+            var expectedMessage1 = $"Key '{Sut.IdFactory.CreateId(name)}' ('{name}') isn`t valid.";
             var expectedMessage2 = $"Name '{name}' isn`t valid.";
             var optionSet = TestDataCreator.OptionSet
                 .WithElement(TestDataCreator.Constant.Build(name))
@@ -551,7 +560,7 @@ namespace SetMeta.Tests.Impl
         public void Parse_ShouldGenerateIdFromNameOfOption()
         {
             var name = Fake("_");
-            var expectedId = OptionSetParser.CreateId(name);
+            var expectedId = Sut.IdFactory.CreateId(name);
             var optionSet = TestDataCreator.OptionSet
                 .WithElement(TestDataCreator.Option.Build(name))
                 .Build();
@@ -565,7 +574,7 @@ namespace SetMeta.Tests.Impl
         public void Parse_ShouldGenerateIdFromNameOfGroup()
         {
             var name = Fake("_");
-            var expectedId = OptionSetParser.CreateId(name);
+            var expectedId = Sut.IdFactory.CreateId(name);
             var optionSet = TestDataCreator.OptionSet
                 .WithElement(TestDataCreator.Group.Build(name))
                 .Build();
@@ -615,7 +624,7 @@ namespace SetMeta.Tests.Impl
             var max = Fake<int>();
             var name = Fake("_");
             var optionSet = TestDataCreator.OptionSet
-                .WithElement(TestDataCreator.OptionSuggestion.WithMaxLength(max.ToString()).Build(name))
+                .WithElement(TestDataCreator.Suggestion.WithMaxLength(max.ToString()).Build(name))
                 .Build();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
@@ -637,7 +646,7 @@ namespace SetMeta.Tests.Impl
             var max = Fake<int>();
             var name = Fake("_");
             var optionSet = TestDataCreator.OptionSet
-                .WithElement(TestDataCreator.OptionSuggestion.WithMaxLines(max.ToString()).Build(name))
+                .WithElement(TestDataCreator.Suggestion.WithMaxLines(max.ToString()).Build(name))
                 .Build();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
@@ -659,7 +668,7 @@ namespace SetMeta.Tests.Impl
             var min = Fake<int>();
             var name = Fake("_");
             var optionSet = TestDataCreator.OptionSet
-                .WithElement(TestDataCreator.OptionSuggestion.WithMinLength(min.ToString()).Build(name))
+                .WithElement(TestDataCreator.Suggestion.WithMinLength(min.ToString()).Build(name))
                 .Build();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
@@ -681,7 +690,7 @@ namespace SetMeta.Tests.Impl
             var min = Fake<int>();
             var name = Fake("_");
             var optionSet = TestDataCreator.OptionSet
-                .WithElement(TestDataCreator.OptionSuggestion.WithMinLines(min.ToString()).Build(name))
+                .WithElement(TestDataCreator.Suggestion.WithMinLines(min.ToString()).Build(name))
                 .Build();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
@@ -702,7 +711,7 @@ namespace SetMeta.Tests.Impl
         {
             var name = Fake("_");
             var optionSet = TestDataCreator.OptionSet
-                .WithElement(TestDataCreator.OptionSuggestion.WithMultiLine().Build(name))
+                .WithElement(TestDataCreator.Suggestion.WithMultiline().Build(name))
                 .Build();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
@@ -720,7 +729,7 @@ namespace SetMeta.Tests.Impl
         {
             var name = Fake("_");
             var optionSet = TestDataCreator.OptionSet
-                .WithElement(TestDataCreator.OptionSuggestion.WithNotifiable().Build(name))
+                .WithElement(TestDataCreator.Suggestion.WithNotifiable().Build(name))
                 .Build();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
@@ -738,7 +747,7 @@ namespace SetMeta.Tests.Impl
         {
             var name = Fake("_");
             var optionSet = TestDataCreator.OptionSet
-                .WithElement(TestDataCreator.OptionSuggestion.WithNotifyOnChange().Build(name))
+                .WithElement(TestDataCreator.Suggestion.WithNotifyOnChange().Build(name))
                 .Build();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
@@ -758,7 +767,7 @@ namespace SetMeta.Tests.Impl
             var validation = Fake<string>();
             var name = Fake("_");
             var optionSet = TestDataCreator.OptionSet
-                .WithElement(TestDataCreator.OptionSuggestion.WithRegex(value, validation).Build(name))
+                .WithElement(TestDataCreator.Suggestion.WithRegex(value, validation).Build(name))
                 .Build();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
@@ -785,7 +794,7 @@ namespace SetMeta.Tests.Impl
 
             var optionSet = TestDataCreator.OptionSet
                 .WithElement(TestDataCreator.Constant.WithValue(constantValue.ToString()).Build(constantName))
-                .WithElement(TestDataCreator.OptionSuggestion.WithMinLength("{Constant name=Test}").Build(name))
+                .WithElement(TestDataCreator.Suggestion.WithMinLength("{Constant name=Test}").Build(name))
                 .Build();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
@@ -804,7 +813,7 @@ namespace SetMeta.Tests.Impl
             var groupName = Fake("_");
             var optionSet = TestDataCreator.OptionSet                
                 .WithElement(TestDataCreator.Group.WithElement(TestDataCreator.Option.WithElement(TestDataCreator.OptionSuggestion.Build(suggestionName)).Build(optionName)).Build(groupName))
-                .WithElement(TestDataCreator.OptionSuggestion.WithMaxLength(max.ToString()).Build(suggestionName))
+                .WithElement(TestDataCreator.Suggestion.WithMaxLength(max.ToString()).Build(suggestionName))
                 .Build();
 
             var actual = Sut.Parse(CreateReader(optionSet), ThrowOptionSetValidator);
@@ -812,6 +821,35 @@ namespace SetMeta.Tests.Impl
             Assert.That(actual.Suggestions, Is.Not.Null);
             Assert.That(actual.Version, Is.EqualTo("1"));
             Assert.That(actual.Groups[groupName].GroupOptions.First().Suggestions[SuggestionType.MaxLength][SuggestionElement.MaxLengthElement.Attrs.Value], Is.EqualTo(actual.Suggestions[suggestionName].Params[SuggestionType.MaxLength][SuggestionElement.MaxLengthElement.Attrs.Value]));
+        }
+
+        [Test]
+        public void Parse_ShouldReturnValidation_WhenSuggestionInOptionGroupIsNotFoundAmongOptionSetSuggestions()
+        {
+            var max = Fake<int>();
+            var suggestionName = Fake("_");
+            var unexpectedSuggestionName = Fake("_");
+            var optionName = Fake("_");
+            var groupName = Fake("_");
+            var mock = Fake<Mock<IOptionSetValidator>>();
+            var expectedMessage = $"Suggestion with name '{unexpectedSuggestionName}' isn`t found among optionSet suggestions.";
+            var optionSet = TestDataCreator.OptionSet
+                                           .WithElement(TestDataCreator.Group
+                                               .WithElement(TestDataCreator.Option
+                                                   .WithElement(TestDataCreator.OptionSuggestion
+                                                       .Build(unexpectedSuggestionName))
+                                                   .Build(optionName))
+                                               .Build(groupName))
+                                           .WithElement(TestDataCreator.Suggestion.WithMaxLength(max.ToString()).Build(suggestionName))
+                                           .Build();
+
+            var actual = Sut.Parse(CreateReader(optionSet), mock.Object);
+
+            Assert.That(actual.Suggestions, Is.Not.Null);
+            Assert.That(actual.Version, Is.EqualTo("1"));
+            Assert.That(actual.Groups[groupName].GroupOptions.First().Suggestions, Is.Empty);
+            mock.Verify(o => o.AddError(expectedMessage, It.IsNotNull<IXmlLineInfo>()), Times.Once);
+            mock.Verify(o => o.AddError(It.IsAny<string>(), It.IsAny<IXmlLineInfo>()), Times.Once);
         }
 
         private XmlTextReader CreateReader(string data)

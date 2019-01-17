@@ -1,59 +1,94 @@
-﻿using System.Xml.Linq;
+﻿using System.Collections.Generic;
+using System.Xml.Linq;
 using SetMeta.Tests.TestDataCreators.Abstract;
+using NamedSuggestionElement = SetMeta.XmlKeys.OptionSetElement.SuggestionElement;
 
 namespace SetMeta.Tests.TestDataCreators
 {
     public class SuggestionTestDataCreator
         : ISuggestionTestDataCreator
     {
-        public ISuggestionTestDataCreator WithMinLength(string value)
+        private readonly IList<XElement> _innerElements;
+
+        public SuggestionTestDataCreator()
         {
-            throw new System.NotImplementedException();
+            _innerElements = new List<XElement>();
         }
 
-        public ISuggestionTestDataCreator WithMaxLength(string value)
+        public ISuggestionTestDataCreator WithMinLength(string length)
         {
-            throw new System.NotImplementedException();
+            _innerElements.Add(new XElement(NamedSuggestionElement.MinLengthElement.ElementName, new XAttribute(NamedSuggestionElement.MinLengthElement.Attrs.Value, length)));
+
+            return this;
+        }
+
+        public ISuggestionTestDataCreator WithMaxLength(string length)
+        {
+            _innerElements.Add(new XElement(NamedSuggestionElement.MaxLengthElement.ElementName, new XAttribute(NamedSuggestionElement.MaxLengthElement.Attrs.Value, length)));
+
+            return this;
+        }
+
+        public ISuggestionTestDataCreator WithMinLines(string length)
+        {
+            _innerElements.Add(new XElement(NamedSuggestionElement.MinLinesElement.ElementName, new XAttribute(NamedSuggestionElement.MinLinesElement.Attrs.Value, length)));
+
+            return this;
+        }
+
+        public ISuggestionTestDataCreator WithMaxLines(string length)
+        {
+            _innerElements.Add(new XElement(NamedSuggestionElement.MaxLinesElement.ElementName, new XAttribute(NamedSuggestionElement.MaxLinesElement.Attrs.Value, length)));
+
+            return this;
         }
 
         public ISuggestionTestDataCreator WithMultiline()
         {
-            throw new System.NotImplementedException();
-        }
+            _innerElements.Add(new XElement(NamedSuggestionElement.MultilineElement.ElementName));
 
-        public ISuggestionTestDataCreator WithMinLines(string value)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public ISuggestionTestDataCreator WithMaxLines(string value)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public ISuggestionTestDataCreator Regex(string value, string validation)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public ISuggestionTestDataCreator WithNotifyOnChange()
-        {
-            throw new System.NotImplementedException();
+            return this;
         }
 
         public ISuggestionTestDataCreator WithNotifiable()
         {
-            throw new System.NotImplementedException();
+            _innerElements.Add(new XElement(NamedSuggestionElement.NotifiableElement.ElementName));
+
+            return this;
         }
 
-        public ISuggestionTestDataCreator WithControl(string name)
+        public ISuggestionTestDataCreator WithNotifyOnChange()
         {
-            throw new System.NotImplementedException();
+            _innerElements.Add(new XElement(NamedSuggestionElement.NotifyOnChangeElement.ElementName));
+
+            return this;
+        }
+
+        public ISuggestionTestDataCreator WithRegex(string value, string validation)
+        {
+            _innerElements.Add(new XElement(NamedSuggestionElement.RegexElement.ElementName, new XAttribute(NamedSuggestionElement.RegexElement.Attrs.Value, value), new XAttribute(NamedSuggestionElement.RegexElement.Attrs.Validation, validation)));
+
+            return this;
+        }
+
+        /// <inheritdoc />
+        public ISuggestionTestDataCreator WithControl(string value)
+        {
+            _innerElements.Add(new XElement(NamedSuggestionElement.ControlElement.ElementName, new XAttribute(NamedSuggestionElement.ControlElement.Attrs.Value, value)));
+
+            return this;
         }
 
         public XElement Build(string name)
         {
-            throw new System.NotImplementedException();
+            var element = new XElement(NamedSuggestionElement.ElementName, new XAttribute(NamedSuggestionElement.Attrs.Name, name));
+
+            foreach (var innerElement in _innerElements)
+            {
+                element.Add(innerElement);
+            }
+
+            return element;
         }
     }
 }

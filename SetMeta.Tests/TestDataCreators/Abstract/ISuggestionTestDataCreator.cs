@@ -9,7 +9,7 @@ namespace SetMeta.Tests.TestDataCreators.Abstract
         ISuggestionTestDataCreator WithMultiline();
         ISuggestionTestDataCreator WithMinLines(string value);
         ISuggestionTestDataCreator WithMaxLines(string value);
-        ISuggestionTestDataCreator Regex(string value, string validation);
+        ISuggestionTestDataCreator WithRegex(string value, string validation);
         ISuggestionTestDataCreator WithNotifyOnChange();
         ISuggestionTestDataCreator WithNotifiable();
         ISuggestionTestDataCreator WithControl(string name);

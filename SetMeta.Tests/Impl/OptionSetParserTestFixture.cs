@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
@@ -23,11 +22,7 @@ namespace SetMeta.Tests.Impl
         [Test]
         public void ShouldNotAcceptNullArgumentsForAllMethodsInner()
         {
-            var exclude = new List<string>
-            {
-                nameof(OptionSetParser.CreateId)
-            };
-            typeof(OptionSetParser).ShouldNotAcceptNullArgumentsForAllMethods(AutoFixture, mi => !exclude.Contains(mi.Name), BindingFlags.Public | BindingFlags.Static);
+            typeof(OptionSetParser).ShouldNotAcceptNullArgumentsForAllMethods(AutoFixture, BindingFlags.Public | BindingFlags.Static);
         }
 
         [Test]
@@ -108,14 +103,6 @@ namespace SetMeta.Tests.Impl
             sut.Parse(Fake<string>(), Fake<IOptionSetValidator>());
 
             mock.Verify(o => o.Parse(It.IsAny<XmlTextReader>(), It.IsNotNull<IOptionSetValidator>()), Times.Once());
-        }
-
-        [Test]
-        public void CreateId_WhenWePassStringNull_ReturnEmptyString()
-        {
-            var actual = OptionSetParser.CreateId(null);
-
-            Assert.That(actual, Is.EqualTo(string.Empty));
         }
     }
 }
